@@ -1,0 +1,345 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// 中文(简体，中国) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
+LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
+#pragma code_page(936)
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)\r\n"
+    "#ifdef _WIN32\r\n"
+    "LANGUAGE 4, 2\r\n"
+    "#pragma code_page(936)\r\n"
+    "#endif //_WIN32\r\n"
+    "#include ""res\\RealPlayAndPTZControl.rc2""  // non-Microsoft Visual C++ edited resources\r\n"
+    "#include ""afxres.rc""          // Standard components\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON                    "res\\RealPlayAndPTZControl.ico"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUTBOX DIALOG 0, 0, 235, 55
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About RealPlayAndPTZControl"
+FONT 9, "MS Sans Serif"
+BEGIN
+    ICON            IDR_MAINFRAME,IDC_STATIC,11,17,20,20
+    LTEXT           "RealPlayAndPTZControl Version 1.0",IDC_STATIC,40,10,119,8,SS_NOPREFIX
+    LTEXT           "Copyright (C) 2018",IDC_STATIC,40,25,119,8
+    DEFPUSHBUTTON   "OK",IDOK,178,7,50,14,WS_GROUP
+END
+
+IDD_RealPlayAndPTZControl_DIALOG DIALOGEX 0, 0, 790, 434
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "RealPlayAndPTZControl"
+FONT 9, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    CONTROL         "",IDC_SCREEN_WINDOW,"Static",SS_WHITEFRAME,1,1,550,310
+    CONTROL         "",IDC_STATIC,"Static",SS_BLACKFRAME,305,318,118,88
+    CONTROL         "",IDC_STATIC,"Static",SS_BLACKFRAME,426,321,119,68
+    PUSHBUTTON      "Login",IDC_BT_Login,323,390,38,14
+    PUSHBUTTON      "Play",IDC_BUTTON_Play,446,372,35,14,WS_DISABLED
+    PUSHBUTTON      "Logout",IDC_BT_Leave,379,390,36,14,WS_DISABLED
+    RTEXT           "Dev. IP:",IDC_STATIC,309,324,33,10
+    RTEXT           "Port:",IDC_STATIC,310,341,34,10
+    EDITTEXT        IDC_EDIT_Port,356,338,47,14,ES_AUTOHSCROLL | ES_NUMBER
+    RTEXT           "User name:",IDC_STATIC,311,357,30,11
+    EDITTEXT        IDC_EDIT_UserName,356,354,47,14,ES_AUTOHSCROLL
+    RTEXT           "Password:",IDC_STATIC,310,374,40,12
+    EDITTEXT        IDC_EDIT_Password,356,371,47,14,ES_PASSWORD | ES_AUTOHSCROLL
+    RTEXT           "Channel:",IDC_STATIC,430,327,44,8
+    RTEXT           "Screen:",IDC_STATIC,429,342,45,8
+    CONTROL         "IPAddress1",IDC_DvrIPAddress,"SysIPAddress32",WS_TABSTOP,346,321,71,14
+    COMBOBOX        IDC_COMBO_DispNum,477,339,61,70,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Stop",IDC_BUTTON_STOP,500,372,35,14
+    COMBOBOX        IDC_COMBO_Channel,477,323,61,66,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "",IDC_STATIC,"Static",SS_BLACKFRAME,551,318,203,80
+    RTEXT           "Speed:",IDC_STATIC,590,326,57,8
+    PUSHBUTTON      "Up",IDC_PTZ_UP,588,343,25,14,BS_FLAT
+    PUSHBUTTON      "Down",IDC_PTZ_DOWN,588,378,25,14,BS_FLAT
+    PUSHBUTTON      "L-Up",IDC_PTZ_LEFTUP,556,343,25,14,BS_FLAT
+    PUSHBUTTON      "R-Up",IDC_PTZ_RIGHTUP,620,343,25,14,BS_FLAT
+    PUSHBUTTON      "L-Down",IDC_PTZ_LEFTDOWN,555,378,28,14,BS_FLAT
+    PUSHBUTTON      "R-Down",IDC_PTZ_RIGHTDOWN,618,378,28,14,BS_FLAT
+    PUSHBUTTON      "Left",IDC_PTZ_LEFT,556,361,25,14,BS_FLAT
+    PUSHBUTTON      "Right",IDC_PTZ_RIGHT,620,361,25,14,BS_FLAT
+    PUSHBUTTON      "-",IDC_ZOOM_WIDE,662,347,20,14,BS_FLAT
+    CTEXT           "Zoom",IDC_STATIC,660,365,22,8
+    PUSHBUTTON      "+",IDC_ZOOM_TELE,662,377,20,14,BS_FLAT
+    CONTROL         "",IDC_STATIC,"Static",SS_BLACKFRAME,658,345,28,48
+    CONTROL         "",IDC_STATIC,"Static",SS_BLACKFRAME,689,345,28,48
+    CONTROL         "",IDC_STATIC,"Static",SS_BLACKFRAME,720,345,28,48
+    PUSHBUTTON      "-",IDC_FOCUS_NEAR,693,347,20,14,BS_FLAT
+    PUSHBUTTON      "-",IDC_IRIS_CLOSE,724,347,20,14,BS_FLAT
+    CTEXT           "Focus",IDC_STATIC,692,365,22,8
+    CTEXT           "Iris",IDC_STATIC,726,365,17,8
+    PUSHBUTTON      "+",IDC_FOCUS_FAR,694,377,20,14,BS_FLAT
+    PUSHBUTTON      "+",IDC_IRIS_OPEN,724,377,20,14,BS_FLAT
+    COMBOBOX        IDC_COMBO_PTZDATA,651,323,42,54,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    CTEXT           "",IDC_PTZSTATUS,697,358,29,8
+    CONTROL         "",IDC_SEPERATOR,"Static",SS_BLACKFRAME | NOT WS_VISIBLE,0,311,790,7
+    PUSHBUTTON      "PTZ",IDC_BTN_PTZMENU,301,186,56,14,NOT WS_VISIBLE
+    PUSHBUTTON      "Advance>>",IDC_BTN_PTZEXCTRL,670,5,84,14,BS_MULTILINE
+    CONTROL         "",IDC_STATIC,"Static",SS_BLACKFRAME,2,320,86,110
+    RTEXT           "Preset Point:",IDC_STATIC,4,327,27,8
+    PUSHBUTTON      "Setup",IDC_PRESET_ADD,4,341,30,14,BS_FLAT
+    PUSHBUTTON      "Call",IDC_PRESET_SET,28,355,30,14,BS_FLAT
+    PUSHBUTTON      "Delete",IDC_PRESET_DELE,56,341,31,14,BS_FLAT
+    PUSHBUTTON      "Add Tour",IDC_CRUISE_ADD_POINT,4,386,38,14,BS_FLAT
+    RTEXT           "AutoTour:",IDC_STATIC,2,372,38,8
+    PUSHBUTTON      "Del Tour",IDC_CRUISE_DEL_POINT,45,386,39,14,BS_FLAT
+    PUSHBUTTON      "Del Group",IDC_CRUISE_DEL_GROUP,23,416,39,14,BS_FLAT
+    PUSHBUTTON      "Start Tour",IDC_START_CRUISE,18,402,45,14,BS_FLAT
+    EDITTEXT        IDC_PRESET_DATA,33,326,45,14,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "",IDC_STATIC,"Static",SS_BLACKFRAME | SS_SUNKEN,91,382,80,1
+    EDITTEXT        IDC_CRUISE_GROUP,42,370,42,14,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "",IDC_STATIC,"Static",SS_BLACKFRAME,91,318,83,112
+    RTEXT           "Pattern:",IDC_STATIC,91,322,36,8
+    EDITTEXT        IDC_MODE_NO,131,322,40,14,ES_AUTOHSCROLL | ES_NUMBER
+    PUSHBUTTON      "Program Start",IDC_MODE_SET_BEGIN,105,337,62,14,BS_FLAT
+    PUSHBUTTON      "Start Pattern",IDC_MODE_START,105,352,62,14,BS_FLAT
+    PUSHBUTTON      "Delete",IDC_MODE_SET_DELETE,104,367,63,14,BS_FLAT
+    CONTROL         "",IDC_STATIC,"Static",SS_BLACKFRAME | SS_SUNKEN,5,369,79,1
+    LTEXT           "Auto Scan:",IDC_STATIC,232,182,8,8,NOT WS_VISIBLE
+    PUSHBUTTON      "Left Limit",IDC_LINE_SET_LEFT,111,385,51,14,BS_FLAT
+    PUSHBUTTON      "Right Limit",IDC_LINE_SET_RIGHT,111,400,51,14,BS_FLAT
+    PUSHBUTTON      "Start",IDC_LINE_START,111,414,48,14,BS_FLAT
+    CONTROL         "",IDC_STATIC,"Static",SS_BLACKFRAME,176,318,72,112
+    RTEXT           "SIT:",IDC_STATIC,179,376,19,8
+    LTEXT           "X:",IDC_STATIC,179,325,13,8
+    EDITTEXT        IDC_POS_X,202,322,40,14,ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        IDC_POS_Y,202,339,40,14,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "Y:",IDC_STATIC,179,341,12,8
+    LTEXT           "ZOOM:",IDC_STATIC,179,356,23,8
+    EDITTEXT        IDC_POS_ZOOM,201,355,40,14,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "",IDC_STATIC,"Static",SS_BLACKFRAME,251,318,53,112
+    PUSHBUTTON      "SIT",IDC_FAST_GO,205,375,36,14,BS_FLAT
+    RTEXT           "Auto pan:",IDC_STATIC,219,59,37,8,NOT WS_VISIBLE
+    PUSHBUTTON      "Start",IDC_ROTATE_START,222,75,50,14,BS_FLAT | NOT WS_VISIBLE
+    CONTROL         "",IDC_STATIC,"Static",SS_BLACKFRAME | SS_SUNKEN | NOT WS_VISIBLE,205,165,109,1
+    RTEXT           "AUX No.:",IDC_STATIC,220,105,37,8,NOT WS_VISIBLE
+    COMBOBOX        IDC_COMBO_AUX_NO,249,118,50,64,CBS_DROPDOWNLIST | NOT WS_VISIBLE | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Aux Open",IDC_AUX_OPEN,223,143,50,14,BS_FLAT | NOT WS_VISIBLE
+    PUSHBUTTON      "Stop",IDC_ROTATE_STOP,282,75,50,14,BS_FLAT | NOT WS_VISIBLE
+    PUSHBUTTON      "Aux Close",IDC_AUX_CLOSE,283,143,50,14,BS_FLAT | NOT WS_VISIBLE
+    COMBOBOX        IDC_COMBO_PLAYMODE,477,355,61,46,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    RTEXT           "Play Type:",IDC_STATIC,430,358,44,8
+    RTEXT           "Run info:",IDC_STATIC,573,7,39,8
+    LTEXT           "normal",IDC_LAST_ERROR,623,7,43,8
+    PUSHBUTTON      "EXACTGO",IDC_EXACT_GO,190,393,51,14,BS_FLAT
+    PUSHBUTTON      "RESETZERO",IDC_RESET,190,411,51,14,BS_FLAT
+    CONTROL         "",IDC_STATIC,"Static",SS_BLACKFRAME | SS_SUNKEN,177,373,67,1
+    CONTROL         "",IDC_STATIC,"Static",SS_BLACKFRAME | SS_SUNKEN,250,381,52,1
+    PUSHBUTTON      "LightOpen",IDC_BUTTON_LIGHT_OPEN,256,333,44,15
+    PUSHBUTTON      "LightClose",IDC_BUTTON_LIGHT_CLOSE,256,353,44,15
+    GROUPBOX        "RainBrush",IDC_STATIC,251,374,53,48
+    PUSHBUTTON      "BrushOpen",IDC_BUTTON_RAIN_BRUSH_OPEN,255,386,44,15
+    PUSHBUTTON      "BrushClose",IDC_BUTTON_RAIN_BRUSH_CLOSE,255,407,44,15
+    GROUPBOX        "Light",IDC_STATIC,253,321,51,53
+    CONTROL         "",IDC_FRAME_CB_INSIDE,"Static",SS_BLACKFRAME,571,39,209,125
+    CONTROL         "",IDC_FRAME_CB_OUTSIDE,"Static",SS_BLACKFRAME,571,184,209,126
+    LTEXT           "CB INSIDE",IDC_STATIC,573,25,37,8
+    LTEXT           "CB OUTSIDE",IDC_STATIC,570,172,41,8
+    CTEXT           "--.--",IDC_DIST_INSIDE,658,20,120,18,SS_CENTERIMAGE
+    CTEXT           "--.--",IDC_DIST_OUTSIDE,656,165,124,19,SS_CENTERIMAGE
+END
+
+IDD_CPtzMenu DIALOGEX 0, 0, 156, 73
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Ptz Menu"
+FONT 9, "MS Sans Serif", 400, 0, 0x0
+BEGIN
+    PUSHBUTTON      "Up",IDC_OPR_UP,40,7,29,14,BS_FLAT
+    PUSHBUTTON      "Right",IDC_OPR_RIGHT,69,22,29,14,BS_FLAT
+    PUSHBUTTON      "Left",IDC_OPR_LEFT,11,22,29,14,BS_FLAT
+    PUSHBUTTON      "Down",IDC_OPR_DOWN,40,37,29,14,BS_FLAT
+    PUSHBUTTON      "Enter Menu",IDC_OPR_OPENMENU,105,7,45,14,BS_FLAT
+    PUSHBUTTON      "Close Menu",IDC_OPR_CLOSEMENU,105,22,45,14,BS_FLAT
+    PUSHBUTTON      "Ok",IDC_OPR_OK,105,37,45,14,BS_FLAT
+    PUSHBUTTON      "Cancel",IDC_OPR_CANCEL,105,52,45,14,BS_FLAT
+END
+
+IDD_DIALOG_MULTIPLAY DIALOGEX 0, 0, 187, 108
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Multi_Preview"
+FONT 9, "MS Sans Serif", 0, 0, 0x0
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,41,77,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,102,77,50,14
+    RTEXT           "Preview Num:",IDC_STATIC,11,18,55,8
+    COMBOBOX        IDC_COMBO_MULTI,77,15,72,59,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    RTEXT           "Start Channel:",IDC_STATIC,9,42,57,8
+    COMBOBOX        IDC_COMBO_BEGINCHANNEL,77,39,72,64,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "080904b0"
+        BEGIN
+            VALUE "FileDescription", "RealPlayAndPTZControl Microsoft Application"
+            VALUE "FileVersion", "1, 0, 0, 1"
+            VALUE "InternalName", "RealPlayAndPTZControl"
+            VALUE "LegalCopyright", "Copyright (C) 2018"
+            VALUE "OriginalFilename", "RealPlayAndPTZControl.EXE"
+            VALUE "ProductName", "RealPlayAndPTZControl Application"
+            VALUE "ProductVersion", "1, 0, 0, 1"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x809, 1200
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_ABOUTBOX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 228
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 48
+    END
+
+    IDD_RealPlayAndPTZControl_DIALOG, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 430
+        HORZGUIDE, 318
+    END
+
+    IDD_DIALOG_MULTIPLAY, DIALOG
+    BEGIN
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_RealPlayAndPTZControl_DIALOG AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    IDS_ABOUTBOX            "About RealPlayAndPTZControl(&A)..."
+END
+
+#endif    // 中文(简体，中国) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
+#ifdef _WIN32
+LANGUAGE 4, 2
+#pragma code_page(936)
+#endif //_WIN32
+#include "res\RealPlayAndPTZControl.rc2"  // non-Microsoft Visual C++ edited resources
+#include "afxres.rc"          // Standard components
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

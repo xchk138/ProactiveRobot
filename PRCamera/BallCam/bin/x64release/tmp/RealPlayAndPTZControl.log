@@ -1,0 +1,45 @@
+﻿  RealPlayAndPTZControlDlg.cpp
+D:\project\chuanwudingwei\code_video\include\dhnetsdk.h(13613,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+D:\project\chuanwudingwei\code_video\include\dhnetsdk.h(14046,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+D:\project\chuanwudingwei\code_video\include\dhnetsdk.h(19819,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+D:\project\chuanwudingwei\code_video\include\dhnetsdk.h(20354,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+D:\project\chuanwudingwei\code_video\include\dhnetsdk.h(33169,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+D:\project\chuanwudingwei\code_video\include\dhnetsdk.h(33710,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+D:\project\chuanwudingwei\code_video\include\dhnetsdk.h(42308,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+D:\project\chuanwudingwei\code_video\include\dhnetsdk.h(42814,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+D:\project\chuanwudingwei\code_video\include\dhnetsdk.h(45437,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+D:\project\chuanwudingwei\code_video\include\dhnetsdk.h(45922,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+D:\project\chuanwudingwei\code_video\include\dhnetsdk.h(46439,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+D:\project\chuanwudingwei\code_video\include\dhnetsdk.h(56889,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+D:\project\chuanwudingwei\code_video\include\dhnetsdk.h(59795,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+D:\project\chuanwudingwei\code_video\include\dhnetsdk.h(60397,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+D:\project\chuanwudingwei\code_video\include\dhnetsdk.h(64666,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+D:\project\chuanwudingwei\code_video\include\dhnetsdk.h(65324,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+D:\project\chuanwudingwei\code_video\include\dhnetsdk.h(72590,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+D:\project\chuanwudingwei\code_video\include\dhnetsdk.h(73285,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+D:\project\chuanwudingwei\code_video\include\dhnetsdk.h(73953,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+D:\project\chuanwudingwei\code_video\include\dhnetsdk.h(74626,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+D:\project\chuanwudingwei\code_video\include\dhconfigsdk.h(247,1): warning C4005: “MAX_PHONE_NUMBER_LEN”: 宏重定义
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\shared\mprapidef.h(19): message : 参见“MAX_PHONE_NUMBER_LEN”的前一个定义
+D:\project\chuanwudingwei\code_video\include\dhconfigsdk.h(5573,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+D:\project\chuanwudingwei\code_video\include\dhconfigsdk.h(6038,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+D:\project\chuanwudingwei\code_video\include\dhconfigsdk.h(7391,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+D:\project\chuanwudingwei\code_video\include\dhconfigsdk.h(7765,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+D:\project\chuanwudingwei\code_video\RealPlayAndPTZControlDlg.cpp(285,31): warning C4244: “=”: 从“int64”转换到“double”，可能丢失数据
+D:\project\chuanwudingwei\code_video\RealPlayAndPTZControlDlg.cpp(292,31): warning C4244: “=”: 从“int64”转换到“double”，可能丢失数据
+D:\project\chuanwudingwei\code_video\RealPlayAndPTZControlDlg.cpp(632,3): warning C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+D:\project\chuanwudingwei\code_video\RealPlayAndPTZControlDlg.cpp(633,3): warning C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+D:\project\chuanwudingwei\code_video\RealPlayAndPTZControlDlg.cpp(634,3): warning C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+D:\project\chuanwudingwei\code_video\RealPlayAndPTZControlDlg.cpp(702,15): warning C4244: “初始化”: 从“DWORD_PTR”转换到“int”，可能丢失数据
+D:\project\chuanwudingwei\code_video\RealPlayAndPTZControlDlg.cpp(717,15): warning C4244: “初始化”: 从“DWORD_PTR”转换到“int”，可能丢失数据
+D:\project\chuanwudingwei\code_video\RealPlayAndPTZControlDlg.cpp(883,16): warning C4244: “初始化”: 从“DWORD_PTR”转换到“int”，可能丢失数据
+D:\project\chuanwudingwei\code_video\RealPlayAndPTZControlDlg.cpp(1563,49): warning C4267: “参数”: 从“size_t”转换到“DWORD”，可能丢失数据
+D:\project\chuanwudingwei\code_video\RealPlayAndPTZControlDlg.cpp(1568,18): warning C4244: “初始化”: 从“int64”转换到“double”，可能丢失数据
+D:\project\chuanwudingwei\code_video\RealPlayAndPTZControlDlg.cpp(1603,29): warning C4244: “=”: 从“int64”转换到“double”，可能丢失数据
+D:\project\chuanwudingwei\code_video\RealPlayAndPTZControlDlg.cpp(1751,16): warning C4244: “初始化”: 从“INT_PTR”转换到“int”，可能丢失数据
+D:\project\chuanwudingwei\code_video\RealPlayAndPTZControlDlg.cpp(2022,16): warning C4244: “初始化”: 从“INT_PTR”转换到“int”，可能丢失数据
+D:\project\chuanwudingwei\code_video\RealPlayAndPTZControlDlg.cpp(2405,16): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+D:\project\chuanwudingwei\code_video\RealPlayAndPTZControlDlg.cpp(2406,16): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+D:\project\chuanwudingwei\code_video\RealPlayAndPTZControlDlg.cpp(2448,20): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+D:\project\chuanwudingwei\code_video\RealPlayAndPTZControlDlg.cpp(2464,13): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+  RealPlayAndPTZControl.vcxproj -> D:\project\chuanwudingwei\code_video\bin\x64release\RealPlayAndPTZControl.exe
