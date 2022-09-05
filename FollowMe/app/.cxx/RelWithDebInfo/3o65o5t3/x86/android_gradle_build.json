@@ -1,0 +1,42 @@
+{
+  "stringTable": {},
+  "buildFiles": [
+    "/home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/home/xc/Android/Sdk/cmake/3.10.2.4988404/bin/ninja",
+      "-C",
+      "/home/xc/space1/android_projs/CameraPreview/app/.cxx/RelWithDebInfo/3o65o5t3/x86",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/home/xc/Android/Sdk/cmake/3.10.2.4988404/bin/ninja",
+    "-C",
+    "/home/xc/space1/android_projs/CameraPreview/app/.cxx/RelWithDebInfo/3o65o5t3/x86",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {
+    "native-lib-RelWithDebInfo-x86": {
+      "buildCommandComponents": [
+        "/home/xc/Android/Sdk/cmake/3.10.2.4988404/bin/ninja",
+        "-C",
+        "/home/xc/space1/android_projs/CameraPreview/app/.cxx/RelWithDebInfo/3o65o5t3/x86",
+        "native-lib"
+      ],
+      "buildType": "release",
+      "abi": "x86",
+      "artifactName": "native-lib",
+      "output": "/home/xc/space1/android_projs/CameraPreview/app/build/intermediates/cxx/RelWithDebInfo/3o65o5t3/obj/x86/libnative-lib.so",
+      "runtimeFiles": [
+        "/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/libs/x86/libopencv_java4.so"
+      ]
+    }
+  },
+  "toolchains": {},
+  "cFileExtensions": [],
+  "cppFileExtensions": [
+    "cpp"
+  ]
+}

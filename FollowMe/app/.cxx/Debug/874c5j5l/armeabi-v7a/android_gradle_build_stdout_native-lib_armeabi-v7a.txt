@@ -1,0 +1,325 @@
+ninja: Entering directory `/home/xc/space1/android_projs/CameraPreview/app/.cxx/Debug/874c5j5l/armeabi-v7a'
+[1/3] Building CXX object CMakeFiles/native-lib.dir/yolo_tracker.cpp.o
+FAILED: CMakeFiles/native-lib.dir/yolo_tracker.cpp.o 
+/home/xc/Android/Sdk/ndk/21.4.7075529/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=armv7-none-linux-androideabi26 --gcc-toolchain=/home/xc/Android/Sdk/ndk/21.4.7075529/toolchains/llvm/prebuilt/linux-x86_64 --sysroot=/home/xc/Android/Sdk/ndk/21.4.7075529/toolchains/llvm/prebuilt/linux-x86_64/sysroot  -Dnative_lib_EXPORTS -I/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include -isystem /home/xc/space1/Downloads/ncnn-20210525-android-vulkan/armeabi-v7a/include/ncnn -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -march=armv7-a -mthumb -Wformat -Werror=format-security   -O0 -fno-limit-debug-info  -fPIC   -fno-rtti -fno-exceptions -MD -MT CMakeFiles/native-lib.dir/yolo_tracker.cpp.o -MF CMakeFiles/native-lib.dir/yolo_tracker.cpp.o.d -o CMakeFiles/native-lib.dir/yolo_tracker.cpp.o -c /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/yolo_tracker.cpp
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/yolo_tracker.cpp:4:
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/yolo_tracker.h:9:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/opencv.hpp:65:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann.hpp:48:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/flann_base.hpp:41:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/params.h:35:
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/any.h:60:63: error: use of typeid requires -frtti
+    virtual const std::type_info& type() CV_OVERRIDE { return typeid(T); }
+                                                              ^
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/any.h:274:31: error: use of typeid requires -frtti
+        if (policy->type() != typeid(T)) throw anyimpl::bad_any_cast();
+                              ^
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/any.h:274:42: error: cannot use 'throw' with exceptions disabled
+        if (policy->type() != typeid(T)) throw anyimpl::bad_any_cast();
+                                         ^
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/any.h:283:31: error: use of typeid requires -frtti
+        if (policy->type() != typeid(T)) throw anyimpl::bad_any_cast();
+                              ^
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/any.h:283:42: error: cannot use 'throw' with exceptions disabled
+        if (policy->type() != typeid(T)) throw anyimpl::bad_any_cast();
+                                         ^
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/any.h:291:34: error: use of typeid requires -frtti
+        return policy->type() == typeid(anyimpl::empty_any);
+                                 ^
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/any.h:311:34: error: use of typeid requires -frtti
+        return policy->type() == typeid(T);
+                                 ^
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/yolo_tracker.cpp:4:
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/yolo_tracker.h:9:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/opencv.hpp:65:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann.hpp:48:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/flann_base.hpp:41:
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/params.h:94:9: error: cannot use 'throw' with exceptions disabled
+        FLANN_THROW(cv::Error::StsBadArg, cv::String("Missing parameter '")+name+cv::String("' in the parameters given"));
+        ^
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/general.h:53:32: note: expanded from macro 'FLANN_THROW'
+#define FLANN_THROW(TYPE, STR) throw FLANNException(STR)
+                               ^
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/yolo_tracker.cpp:4:
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/yolo_tracker.h:9:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/opencv.hpp:65:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann.hpp:48:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/flann_base.hpp:42:
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/saving.h:115:9: error: cannot use 'throw' with exceptions disabled
+        FLANN_THROW(cv::Error::StsError, "Invalid index file, cannot read");
+        ^
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/general.h:53:32: note: expanded from macro 'FLANN_THROW'
+#define FLANN_THROW(TYPE, STR) throw FLANNException(STR)
+                               ^
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/yolo_tracker.cpp:4:
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/yolo_tracker.h:9:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/opencv.hpp:65:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann.hpp:48:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/flann_base.hpp:42:
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/saving.h:119:9: error: cannot use 'throw' with exceptions disabled
+        FLANN_THROW(cv::Error::StsError, "Invalid index file, wrong signature");
+        ^
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/general.h:53:32: note: expanded from macro 'FLANN_THROW'
+#define FLANN_THROW(TYPE, STR) throw FLANNException(STR)
+                               ^
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/yolo_tracker.cpp:4:
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/yolo_tracker.h:9:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/opencv.hpp:65:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann.hpp:48:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/flann_base.hpp:42:
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/saving.h:153:9: error: cannot use 'throw' with exceptions disabled
+        FLANN_THROW(cv::Error::StsParseError, "Cannot read from file");
+        ^
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/general.h:53:32: note: expanded from macro 'FLANN_THROW'
+#define FLANN_THROW(TYPE, STR) throw FLANNException(STR)
+                               ^
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/yolo_tracker.cpp:4:
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/yolo_tracker.h:9:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/opencv.hpp:65:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann.hpp:48:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/flann_base.hpp:42:
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/saving.h:162:9: error: cannot use 'throw' with exceptions disabled
+        FLANN_THROW(cv::Error::StsParseError, "Cannot read from file");
+        ^
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/general.h:53:32: note: expanded from macro 'FLANN_THROW'
+#define FLANN_THROW(TYPE, STR) throw FLANNException(STR)
+                               ^
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/yolo_tracker.cpp:4:
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/yolo_tracker.h:9:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/opencv.hpp:65:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann.hpp:48:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/flann_base.hpp:42:
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/saving.h:167:9: error: cannot use 'throw' with exceptions disabled
+        FLANN_THROW(cv::Error::StsParseError, "Cannot read from file");
+        ^
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/general.h:53:32: note: expanded from macro 'FLANN_THROW'
+#define FLANN_THROW(TYPE, STR) throw FLANNException(STR)
+                               ^
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/yolo_tracker.cpp:4:
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/yolo_tracker.h:9:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/opencv.hpp:65:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann.hpp:48:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/flann_base.hpp:42:
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/saving.h:178:9: error: cannot use 'throw' with exceptions disabled
+        FLANN_THROW(cv::Error::StsError, "Cannot read from file");
+        ^
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/general.h:53:32: note: expanded from macro 'FLANN_THROW'
+#define FLANN_THROW(TYPE, STR) throw FLANNException(STR)
+                               ^
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/yolo_tracker.cpp:4:
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/yolo_tracker.h:9:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/opencv.hpp:65:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann.hpp:48:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/flann_base.hpp:42:
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/saving.h:183:9: error: cannot use 'throw' with exceptions disabled
+        FLANN_THROW(cv::Error::StsError, "Cannot read from file");
+        ^
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/general.h:53:32: note: expanded from macro 'FLANN_THROW'
+#define FLANN_THROW(TYPE, STR) throw FLANNException(STR)
+                               ^
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/yolo_tracker.cpp:4:
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/yolo_tracker.h:9:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/opencv.hpp:65:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann.hpp:48:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/flann_base.hpp:44:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/all_indices.h:40:
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/kmeans_index.h:373:13: error: cannot use 'throw' with exceptions disabled
+            FLANN_THROW(cv::Error::StsBadArg, "Unknown algorithm for choosing initial centers.");
+            ^
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/general.h:53:32: note: expanded from macro 'FLANN_THROW'
+#define FLANN_THROW(TYPE, STR) throw FLANNException(STR)
+                               ^
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/yolo_tracker.cpp:4:
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/yolo_tracker.h:9:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/opencv.hpp:65:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann.hpp:48:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/flann_base.hpp:44:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/all_indices.h:40:
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/kmeans_index.h:445:13: error: cannot use 'throw' with exceptions disabled
+            FLANN_THROW(cv::Error::StsError, "Branching factor must be at least 2");
+            ^
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/general.h:53:32: note: expanded from macro 'FLANN_THROW'
+#define FLANN_THROW(TYPE, STR) throw FLANNException(STR)
+                               ^
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/yolo_tracker.cpp:4:
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/yolo_tracker.h:9:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/opencv.hpp:65:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann.hpp:48:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/flann_base.hpp:44:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/all_indices.h:40:
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/kmeans_index.h:560:13: error: cannot use 'throw' with exceptions disabled
+            FLANN_THROW(cv::Error::StsBadArg, "Number of clusters must be at least 1");
+            ^
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/general.h:53:32: note: expanded from macro 'FLANN_THROW'
+#define FLANN_THROW(TYPE, STR) throw FLANNException(STR)
+                               ^
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/yolo_tracker.cpp:4:
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/yolo_tracker.h:9:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/opencv.hpp:65:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann.hpp:48:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/flann_base.hpp:44:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/all_indices.h:43:
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/hierarchical_clustering_index.h:385:13: error: cannot use 'throw' with exceptions disabled
+            FLANN_THROW(cv::Error::StsError, "Unknown algorithm for choosing initial centers.");
+            ^
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/general.h:53:32: note: expanded from macro 'FLANN_THROW'
+#define FLANN_THROW(TYPE, STR) throw FLANNException(STR)
+                               ^
+fatal error: too many errors emitted, stopping now [-ferror-limit=]
+20 errors generated.
+[2/3] Building CXX object CMakeFiles/native-lib.dir/native-lib.cpp.o
+FAILED: CMakeFiles/native-lib.dir/native-lib.cpp.o 
+/home/xc/Android/Sdk/ndk/21.4.7075529/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=armv7-none-linux-androideabi26 --gcc-toolchain=/home/xc/Android/Sdk/ndk/21.4.7075529/toolchains/llvm/prebuilt/linux-x86_64 --sysroot=/home/xc/Android/Sdk/ndk/21.4.7075529/toolchains/llvm/prebuilt/linux-x86_64/sysroot  -Dnative_lib_EXPORTS -I/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include -isystem /home/xc/space1/Downloads/ncnn-20210525-android-vulkan/armeabi-v7a/include/ncnn -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -march=armv7-a -mthumb -Wformat -Werror=format-security   -O0 -fno-limit-debug-info  -fPIC   -fno-rtti -fno-exceptions -MD -MT CMakeFiles/native-lib.dir/native-lib.cpp.o -MF CMakeFiles/native-lib.dir/native-lib.cpp.o.d -o CMakeFiles/native-lib.dir/native-lib.cpp.o -c /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/native-lib.cpp
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/native-lib.cpp:2:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/opencv.hpp:65:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann.hpp:48:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/flann_base.hpp:41:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/params.h:35:
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/any.h:60:63: error: use of typeid requires -frtti
+    virtual const std::type_info& type() CV_OVERRIDE { return typeid(T); }
+                                                              ^
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/any.h:274:31: error: use of typeid requires -frtti
+        if (policy->type() != typeid(T)) throw anyimpl::bad_any_cast();
+                              ^
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/any.h:274:42: error: cannot use 'throw' with exceptions disabled
+        if (policy->type() != typeid(T)) throw anyimpl::bad_any_cast();
+                                         ^
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/any.h:283:31: error: use of typeid requires -frtti
+        if (policy->type() != typeid(T)) throw anyimpl::bad_any_cast();
+                              ^
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/any.h:283:42: error: cannot use 'throw' with exceptions disabled
+        if (policy->type() != typeid(T)) throw anyimpl::bad_any_cast();
+                                         ^
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/any.h:291:34: error: use of typeid requires -frtti
+        return policy->type() == typeid(anyimpl::empty_any);
+                                 ^
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/any.h:311:34: error: use of typeid requires -frtti
+        return policy->type() == typeid(T);
+                                 ^
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/native-lib.cpp:2:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/opencv.hpp:65:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann.hpp:48:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/flann_base.hpp:41:
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/params.h:94:9: error: cannot use 'throw' with exceptions disabled
+        FLANN_THROW(cv::Error::StsBadArg, cv::String("Missing parameter '")+name+cv::String("' in the parameters given"));
+        ^
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/general.h:53:32: note: expanded from macro 'FLANN_THROW'
+#define FLANN_THROW(TYPE, STR) throw FLANNException(STR)
+                               ^
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/native-lib.cpp:2:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/opencv.hpp:65:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann.hpp:48:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/flann_base.hpp:42:
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/saving.h:115:9: error: cannot use 'throw' with exceptions disabled
+        FLANN_THROW(cv::Error::StsError, "Invalid index file, cannot read");
+        ^
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/general.h:53:32: note: expanded from macro 'FLANN_THROW'
+#define FLANN_THROW(TYPE, STR) throw FLANNException(STR)
+                               ^
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/native-lib.cpp:2:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/opencv.hpp:65:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann.hpp:48:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/flann_base.hpp:42:
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/saving.h:119:9: error: cannot use 'throw' with exceptions disabled
+        FLANN_THROW(cv::Error::StsError, "Invalid index file, wrong signature");
+        ^
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/general.h:53:32: note: expanded from macro 'FLANN_THROW'
+#define FLANN_THROW(TYPE, STR) throw FLANNException(STR)
+                               ^
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/native-lib.cpp:2:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/opencv.hpp:65:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann.hpp:48:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/flann_base.hpp:42:
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/saving.h:153:9: error: cannot use 'throw' with exceptions disabled
+        FLANN_THROW(cv::Error::StsParseError, "Cannot read from file");
+        ^
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/general.h:53:32: note: expanded from macro 'FLANN_THROW'
+#define FLANN_THROW(TYPE, STR) throw FLANNException(STR)
+                               ^
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/native-lib.cpp:2:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/opencv.hpp:65:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann.hpp:48:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/flann_base.hpp:42:
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/saving.h:162:9: error: cannot use 'throw' with exceptions disabled
+        FLANN_THROW(cv::Error::StsParseError, "Cannot read from file");
+        ^
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/general.h:53:32: note: expanded from macro 'FLANN_THROW'
+#define FLANN_THROW(TYPE, STR) throw FLANNException(STR)
+                               ^
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/native-lib.cpp:2:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/opencv.hpp:65:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann.hpp:48:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/flann_base.hpp:42:
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/saving.h:167:9: error: cannot use 'throw' with exceptions disabled
+        FLANN_THROW(cv::Error::StsParseError, "Cannot read from file");
+        ^
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/general.h:53:32: note: expanded from macro 'FLANN_THROW'
+#define FLANN_THROW(TYPE, STR) throw FLANNException(STR)
+                               ^
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/native-lib.cpp:2:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/opencv.hpp:65:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann.hpp:48:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/flann_base.hpp:42:
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/saving.h:178:9: error: cannot use 'throw' with exceptions disabled
+        FLANN_THROW(cv::Error::StsError, "Cannot read from file");
+        ^
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/general.h:53:32: note: expanded from macro 'FLANN_THROW'
+#define FLANN_THROW(TYPE, STR) throw FLANNException(STR)
+                               ^
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/native-lib.cpp:2:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/opencv.hpp:65:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann.hpp:48:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/flann_base.hpp:42:
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/saving.h:183:9: error: cannot use 'throw' with exceptions disabled
+        FLANN_THROW(cv::Error::StsError, "Cannot read from file");
+        ^
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/general.h:53:32: note: expanded from macro 'FLANN_THROW'
+#define FLANN_THROW(TYPE, STR) throw FLANNException(STR)
+                               ^
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/native-lib.cpp:2:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/opencv.hpp:65:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann.hpp:48:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/flann_base.hpp:44:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/all_indices.h:40:
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/kmeans_index.h:373:13: error: cannot use 'throw' with exceptions disabled
+            FLANN_THROW(cv::Error::StsBadArg, "Unknown algorithm for choosing initial centers.");
+            ^
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/general.h:53:32: note: expanded from macro 'FLANN_THROW'
+#define FLANN_THROW(TYPE, STR) throw FLANNException(STR)
+                               ^
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/native-lib.cpp:2:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/opencv.hpp:65:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann.hpp:48:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/flann_base.hpp:44:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/all_indices.h:40:
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/kmeans_index.h:445:13: error: cannot use 'throw' with exceptions disabled
+            FLANN_THROW(cv::Error::StsError, "Branching factor must be at least 2");
+            ^
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/general.h:53:32: note: expanded from macro 'FLANN_THROW'
+#define FLANN_THROW(TYPE, STR) throw FLANNException(STR)
+                               ^
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/native-lib.cpp:2:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/opencv.hpp:65:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann.hpp:48:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/flann_base.hpp:44:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/all_indices.h:40:
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/kmeans_index.h:560:13: error: cannot use 'throw' with exceptions disabled
+            FLANN_THROW(cv::Error::StsBadArg, "Number of clusters must be at least 1");
+            ^
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/general.h:53:32: note: expanded from macro 'FLANN_THROW'
+#define FLANN_THROW(TYPE, STR) throw FLANNException(STR)
+                               ^
+In file included from /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/native-lib.cpp:2:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/opencv.hpp:65:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann.hpp:48:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/flann_base.hpp:44:
+In file included from /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/all_indices.h:43:
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/hierarchical_clustering_index.h:385:13: error: cannot use 'throw' with exceptions disabled
+            FLANN_THROW(cv::Error::StsError, "Unknown algorithm for choosing initial centers.");
+            ^
+/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include/opencv2/flann/general.h:53:32: note: expanded from macro 'FLANN_THROW'
+#define FLANN_THROW(TYPE, STR) throw FLANNException(STR)
+                               ^
+fatal error: too many errors emitted, stopping now [-ferror-limit=]
+20 errors generated.
+ninja: build stopped: subcommand failed.

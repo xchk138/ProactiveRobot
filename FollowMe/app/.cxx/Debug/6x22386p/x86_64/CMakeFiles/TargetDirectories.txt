@@ -1,0 +1,3 @@
+/home/xc/space1/android_projs/CameraPreview/app/.cxx/Debug/6x22386p/x86_64/CMakeFiles/rebuild_cache.dir
+/home/xc/space1/android_projs/CameraPreview/app/.cxx/Debug/6x22386p/x86_64/CMakeFiles/edit_cache.dir
+/home/xc/space1/android_projs/CameraPreview/app/.cxx/Debug/6x22386p/x86_64/CMakeFiles/native-lib.dir

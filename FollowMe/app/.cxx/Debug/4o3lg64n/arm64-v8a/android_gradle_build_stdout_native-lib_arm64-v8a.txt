@@ -1,0 +1,15 @@
+ninja: Entering directory `/home/xc/space1/android_projs/CameraPreview/app/.cxx/Debug/4o3lg64n/arm64-v8a'
+[1/3] Building CXX object CMakeFiles/native-lib.dir/native-lib.cpp.o
+[2/3] Building CXX object CMakeFiles/native-lib.dir/yolo_tracker.cpp.o
+/home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/yolo_tracker.cpp:61:57: warning: format specifies type 'int' but the argument has type 'std::__ndk1::vector<cv::Mat, std::__ndk1::allocator<cv::Mat> >::size_type' (aka 'unsigned long') [-Wformat]
+    LOGI("outputs has %d elements, with first %d x %d", outputs.size(), outputs[0].rows,
+                      ~~                                ^~~~~~~~~~~~~~
+                      %lu
+/home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/utils.h:11:71: note: expanded from macro 'LOGI'
+#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, TEST_LOG_TAG, __VA_ARGS__)
+                                                                      ^~~~~~~~~~~
+/home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/yolo_tracker.cpp:424:1: warning: control reaches end of non-void function [-Wreturn-type]
+}
+^
+2 warnings generated.
+[3/3] Linking CXX shared library /home/xc/space1/android_projs/CameraPreview/app/build/intermediates/cxx/Debug/4o3lg64n/obj/arm64-v8a/libnative-lib.so

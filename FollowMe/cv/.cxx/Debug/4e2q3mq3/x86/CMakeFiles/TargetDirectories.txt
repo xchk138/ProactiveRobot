@@ -1,0 +1,3 @@
+/home/xc/space1/android_projs/CameraPreview/cv/.cxx/Debug/4e2q3mq3/x86/CMakeFiles/rebuild_cache.dir
+/home/xc/space1/android_projs/CameraPreview/cv/.cxx/Debug/4e2q3mq3/x86/CMakeFiles/edit_cache.dir
+/home/xc/space1/android_projs/CameraPreview/cv/.cxx/Debug/4e2q3mq3/x86/CMakeFiles/opencv_jni_shared.dir

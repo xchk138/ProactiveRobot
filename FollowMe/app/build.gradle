@@ -1,0 +1,67 @@
+apply plugin: 'com.android.application'
+
+apply plugin: 'kotlin-android'
+
+apply plugin: 'kotlin-android-extensions'
+
+android {
+    signingConfigs {
+        debug {
+            storeFile file('/home/xc/space1/android_projs/keystore/emituofo.jks')
+            storePassword 'emituofo'
+            keyAlias 'key0'
+            keyPassword 'emituofo'
+        }
+        release {
+            storeFile file('/home/xc/space1/android_projs/keystore/emituofo.jks')
+            storePassword 'emituofo'
+            keyAlias 'key0'
+            keyPassword 'emituofo'
+        }
+    }
+    compileSdkVersion 33
+    defaultConfig {
+        applicationId "ph.edu.dlsu.robot"
+        minSdkVersion 26
+        targetSdkVersion 33
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        externalNativeBuild {
+            cmake {
+                //cppFlags "-frtti -fexceptions"
+                abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
+                //arguments "-DOpenCV_DIR=" + opencvsdk + "/sdk/native"
+            }
+        }
+        signingConfig signingConfigs.release
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    externalNativeBuild {
+        cmake {
+            path "src/main/cpp/CMakeLists.txt"
+            version '3.18.1'
+        }
+    }
+
+    aaptOptions {
+        noCompress 'onnx'
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'androidx.appcompat:appcompat:1.0.2'
+    implementation 'androidx.core:core-ktx:1.0.2'
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+    implementation project(path: ':cv')
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'androidx.test:runner:1.1.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
+}

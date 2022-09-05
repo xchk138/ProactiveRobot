@@ -1,0 +1,6 @@
+# ninja log v5
+0	1014	1661755107	CMakeFiles/native-lib.dir/native-lib.cpp.o	8e91197b180aac9c
+1	1079	1661756071	CMakeFiles/native-lib.dir/yolo_tracker.cpp.o	b0c8f937d0cdde13
+1079	2074	1661756071	/home/xc/space1/android_projs/CameraPreview/app/build/intermediates/cxx/Debug/4f5w145x/obj/x86_64/libnative-lib.so	5db2a6009c7bd4a2
+0	42	1662342536	build.ninja	12608bb9744244da
+0	2	0	clean	80540c8abd8a8321

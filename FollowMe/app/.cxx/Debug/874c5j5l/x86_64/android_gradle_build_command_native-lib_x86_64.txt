@@ -1,0 +1,7 @@
+Executable : /home/xc/Android/Sdk/cmake/3.10.2.4988404/bin/ninja
+arguments : 
+-C
+/home/xc/space1/android_projs/CameraPreview/app/.cxx/Debug/874c5j5l/x86_64
+native-lib
+jvmArgs : 
+

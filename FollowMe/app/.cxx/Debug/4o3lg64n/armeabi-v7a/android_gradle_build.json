@@ -1,0 +1,42 @@
+{
+  "stringTable": {},
+  "buildFiles": [
+    "/home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/home/xc/Android/Sdk/cmake/3.10.2.4988404/bin/ninja",
+      "-C",
+      "/home/xc/space1/android_projs/CameraPreview/app/.cxx/Debug/4o3lg64n/armeabi-v7a",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/home/xc/Android/Sdk/cmake/3.10.2.4988404/bin/ninja",
+    "-C",
+    "/home/xc/space1/android_projs/CameraPreview/app/.cxx/Debug/4o3lg64n/armeabi-v7a",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {
+    "native-lib-Debug-armeabi-v7a": {
+      "buildCommandComponents": [
+        "/home/xc/Android/Sdk/cmake/3.10.2.4988404/bin/ninja",
+        "-C",
+        "/home/xc/space1/android_projs/CameraPreview/app/.cxx/Debug/4o3lg64n/armeabi-v7a",
+        "native-lib"
+      ],
+      "buildType": "debug",
+      "abi": "armeabi-v7a",
+      "artifactName": "native-lib",
+      "output": "/home/xc/space1/android_projs/CameraPreview/app/build/intermediates/cxx/Debug/4o3lg64n/obj/armeabi-v7a/libnative-lib.so",
+      "runtimeFiles": [
+        "/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/libs/armeabi-v7a/libopencv_java4.so"
+      ]
+    }
+  },
+  "toolchains": {},
+  "cFileExtensions": [],
+  "cppFileExtensions": [
+    "cpp"
+  ]
+}

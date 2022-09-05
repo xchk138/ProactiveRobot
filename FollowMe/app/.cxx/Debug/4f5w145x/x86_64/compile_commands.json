@@ -1,0 +1,17 @@
+[
+{
+  "directory": "/home/xc/space1/android_projs/CameraPreview/app/.cxx/Debug/4f5w145x/x86_64",
+  "command": "/home/xc/Android/Sdk/ndk/21.4.7075529/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=x86_64-none-linux-android26 --gcc-toolchain=/home/xc/Android/Sdk/ndk/21.4.7075529/toolchains/llvm/prebuilt/linux-x86_64 --sysroot=/home/xc/Android/Sdk/ndk/21.4.7075529/toolchains/llvm/prebuilt/linux-x86_64/sysroot -Dnative_lib_EXPORTS -isystem /home/xc/space1/Downloads/ncnn-20210525-android-vulkan/x86_64/include/ncnn -isystem /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -O0 -fno-limit-debug-info  -fPIC -fno-rtti -fno-exceptions -pthread -o CMakeFiles/native-lib.dir/native-lib.cpp.o -c /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/native-lib.cpp",
+  "file": "/home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/native-lib.cpp"
+},
+{
+  "directory": "/home/xc/space1/android_projs/CameraPreview/app/.cxx/Debug/4f5w145x/x86_64",
+  "command": "/home/xc/Android/Sdk/ndk/21.4.7075529/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=x86_64-none-linux-android26 --gcc-toolchain=/home/xc/Android/Sdk/ndk/21.4.7075529/toolchains/llvm/prebuilt/linux-x86_64 --sysroot=/home/xc/Android/Sdk/ndk/21.4.7075529/toolchains/llvm/prebuilt/linux-x86_64/sysroot -Dnative_lib_EXPORTS -isystem /home/xc/space1/Downloads/ncnn-20210525-android-vulkan/x86_64/include/ncnn -isystem /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -O0 -fno-limit-debug-info  -fPIC -fno-rtti -fno-exceptions -pthread -o CMakeFiles/native-lib.dir/yolo_tracker.cpp.o -c /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/yolo_tracker.cpp",
+  "file": "/home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/yolo_tracker.cpp"
+},
+{
+  "directory": "/home/xc/space1/android_projs/CameraPreview/app/.cxx/Debug/4f5w145x/x86_64",
+  "command": "/home/xc/Android/Sdk/ndk/21.4.7075529/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=x86_64-none-linux-android26 --gcc-toolchain=/home/xc/Android/Sdk/ndk/21.4.7075529/toolchains/llvm/prebuilt/linux-x86_64 --sysroot=/home/xc/Android/Sdk/ndk/21.4.7075529/toolchains/llvm/prebuilt/linux-x86_64/sysroot -Dnative_lib_EXPORTS -isystem /home/xc/space1/Downloads/ncnn-20210525-android-vulkan/x86_64/include/ncnn -isystem /home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -O0 -fno-limit-debug-info  -fPIC -fno-rtti -fno-exceptions -pthread -o CMakeFiles/native-lib.dir/nano_track.cpp.o -c /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/nano_track.cpp",
+  "file": "/home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/nano_track.cpp"
+}
+]

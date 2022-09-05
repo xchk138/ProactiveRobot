@@ -1,0 +1,13 @@
+[
+{
+  "directory": "/home/xc/space1/android_projs/CameraPreview/app/.cxx/RelWithDebInfo/3o65o5t3/x86",
+  "command": "/home/xc/Android/Sdk/ndk/21.4.7075529/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=i686-none-linux-android26 --gcc-toolchain=/home/xc/Android/Sdk/ndk/21.4.7075529/toolchains/llvm/prebuilt/linux-x86_64 --sysroot=/home/xc/Android/Sdk/ndk/21.4.7075529/toolchains/llvm/prebuilt/linux-x86_64/sysroot  -Dnative_lib_EXPORTS -I/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include -isystem /home/xc/space1/Downloads/ncnn-20210525-android-vulkan/x86/include/ncnn  -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -frtti -fexceptions -O2 -g -DNDEBUG -fPIC   -fno-rtti -fno-exceptions -o CMakeFiles/native-lib.dir/native-lib.cpp.o -c /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/native-lib.cpp",
+  "file": "/home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/native-lib.cpp"
+},
+
+{
+  "directory": "/home/xc/space1/android_projs/CameraPreview/app/.cxx/RelWithDebInfo/3o65o5t3/x86",
+  "command": "/home/xc/Android/Sdk/ndk/21.4.7075529/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=i686-none-linux-android26 --gcc-toolchain=/home/xc/Android/Sdk/ndk/21.4.7075529/toolchains/llvm/prebuilt/linux-x86_64 --sysroot=/home/xc/Android/Sdk/ndk/21.4.7075529/toolchains/llvm/prebuilt/linux-x86_64/sysroot  -Dnative_lib_EXPORTS -I/home/xc/space1/Downloads/opencv460/OpenCV-android-sdk/sdk/native/jni/include -isystem /home/xc/space1/Downloads/ncnn-20210525-android-vulkan/x86/include/ncnn  -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -frtti -fexceptions -O2 -g -DNDEBUG -fPIC   -fno-rtti -fno-exceptions -o CMakeFiles/native-lib.dir/yolo_tracker.cpp.o -c /home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/yolo_tracker.cpp",
+  "file": "/home/xc/space1/android_projs/CameraPreview/app/src/main/cpp/yolo_tracker.cpp"
+}
+]

@@ -1,0 +1,17 @@
+# ninja log v5
+0	1889	1660553592	CMakeFiles/native-lib.dir/native-lib.cpp.o	f6e97f8a4c6727d3
+0	2461	1660553593	CMakeFiles/native-lib.dir/yolo_tracker.cpp.o	3f2c60301983f737
+2461	2589	1660553593	/home/xc/space1/android_projs/CameraPreview/app/build/intermediates/cxx/RelWithDebInfo/3o65o5t3/obj/arm64-v8a/libnative-lib.so	e76cfbca4f24bcd6
+0	2	0	clean	edfc174fb7539358
+0	3	0	clean	edfc174fb7539358
+0	2	0	clean	edfc174fb7539358
+0	2	0	clean	edfc174fb7539358
+0	1	0	clean	edfc174fb7539358
+0	2	0	clean	edfc174fb7539358
+0	11	1661741961	build.ninja	4a88053695c64dbb
+0	1	0	clean	edfc174fb7539358
+0	2	0	clean	edfc174fb7539358
+0	375	1661745276	build.ninja	4a88053695c64dbb
+0	2	0	clean	edfc174fb7539358
+0	18	1661753018	build.ninja	4a88053695c64dbb
+0	1	0	clean	edfc174fb7539358
