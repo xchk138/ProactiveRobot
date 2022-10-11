@@ -1,0 +1,3 @@
+-rw-r--r-- 1 xiangchao 1049089 7562387 Sep 26 17:21 yolov5n-256.onnx
+-rw-r--r-- 1 xiangchao 1049089 7299077 Sep 26 17:21 yolov5n-face-256.onnx
+-rw-r--r-- 1 xiangchao 1049089 7724683 Jul 21 17:16 yolov5n.onnx

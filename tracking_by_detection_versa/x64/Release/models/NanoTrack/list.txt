@@ -1,0 +1,5 @@
+-rw-r--r-- 1 xiangchao 1049089 768293 Oct  9 16:00 nanotrack_backbone.onnx
+-rw-r--r-- 1 xiangchao 1049089 767819 Oct  9 16:21 nanotrack_backbone_sim.onnx
+-rw-r--r-- 1 xiangchao 1049089 392153 Oct  9 16:00 nanotrack_head.onnx
+-rw-r--r-- 1 xiangchao 1049089 392202 Oct  9 16:26 nanotrack_head_sim.onnx
+
