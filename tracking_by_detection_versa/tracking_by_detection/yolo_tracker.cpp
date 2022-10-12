@@ -6,14 +6,17 @@
 #include <opencv2/video/tracking.hpp>
 #include <sstream>
 
-
 void print_id_list(std::vector<int> const& id_list) {
     if (id_list.size() < 2) return;
     char _buf[8];
     std::stringstream ss("");
     ss << "[";
     for (int i = 0; i < int(id_list.size()); ++i) {
+        #ifdef _WIN32
         sprintf_s(_buf, " %d", id_list[i]);
+        #else
+        sprintf(_buf, " %d", id_list[i]);
+        #endif
         ss << _buf;
     }
     ss << " ]";
@@ -377,7 +380,7 @@ bool YoloTracker::Track(
             }
 
             // sort remove ids to avoid false removal
-            std::sort(remove_ids.begin(), remove_ids.end(), std::greater());
+            std::sort(remove_ids.begin(), remove_ids.end(), std::greater<int>());
             print_id_list(remove_ids);
 
             for (int remove_id : remove_ids) {
@@ -397,7 +400,7 @@ bool YoloTracker::Track(
                 }
             }
 
-            std::sort(remove_ids.begin(), remove_ids.end(), std::greater());
+            std::sort(remove_ids.begin(), remove_ids.end(), std::greater<int>());
             print_id_list(remove_ids);
             
             for (int remove_id : remove_ids) {
@@ -442,6 +445,7 @@ bool YoloTracker::Track(
 bool YoloTracker::GetLastResult(std::vector<cv::Rect>& objs) {
     if (!objs.empty()) objs.resize(0);
     std::copy(bboxes_track.begin(), bboxes_track.end(), objs.begin());
+    return mAvailable;
 }
 
 

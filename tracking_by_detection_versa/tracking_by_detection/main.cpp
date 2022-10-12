@@ -1,5 +1,5 @@
 #include <iostream>
-#include <opencv.hpp>
+#include <opencv2/opencv.hpp>
 #include "utils.h"
 #include "yolo_tracker.h"
 
@@ -61,6 +61,6 @@ int main() {
 		if (code == 27 || code==32) break;
 	}
 	vid_cap.release();
-	system("pause");
+	//system("pause");
 	return 0;
 }

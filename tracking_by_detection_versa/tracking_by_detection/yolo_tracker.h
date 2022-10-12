@@ -76,7 +76,7 @@ private:
     // settings
 public:
     const int max_offline_time = 3;
-    const int detect_cycle = 20;
+    const int detect_cycle = 30;
     const cv::Size detect_size = { 256, 256 };
     const cv::Size track_size = { 256, 256 };
     // Detection params
