@@ -1,7 +1,6 @@
-#pragma once
-class nano_track
-{
-};
+// nano_track.h
+#ifndef NANO_TRACK_H
+#define NANO_TRACK_H
 
 #include <vector>
 #include <map>
@@ -11,8 +10,6 @@ class nano_track
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/dnn.hpp>
 
-#define SMALL_SZ  255   //256
-#define BIG_SZ  255     //288
 #define LR 0.616
 #define PENALTY_K 0.007
 #define RATIO 1
@@ -110,3 +107,4 @@ private:
 // redefine clearing
 void NanoTrackClear(std::vector<NanoTrack*>& trackers);
 
+#endif // NANO_TRACK_H

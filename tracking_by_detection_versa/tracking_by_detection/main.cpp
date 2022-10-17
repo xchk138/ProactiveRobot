@@ -8,16 +8,6 @@ int main() {
 	cv::Mat _im_RAW, _im_crop, _im;
 	cv::VideoCapture vid_cap("docking.mp4");
 
-	// global model loading configuration
-	cv::String model_base = "models/";
-	// YOLOv5-6.1
-	cv::String yolov5_split = "YOLOv5/";
-	cv::String yolov5_main = "yolov5n-256.onnx";
-	// NanoTrack
-	cv::String nanotrack_split = "NanoTrack/";
-	cv::String nanotrack_backbone = "nanotrack_backbone.onnx";
-	cv::String nanotrack_head = "nanotrack_head.onnx";
-
 	// create a tracker based on YOLO and NanoTrack
 	cv::String path_detector = model_base + yolov5_split + yolov5_main;
 	cv::String path_tracker_backbone = model_base + nanotrack_split + nanotrack_backbone;
@@ -33,30 +23,43 @@ int main() {
 	}
 
 	// input
-	cv::Mat im_RAW;
+	cv::Mat im_raw, im_small, im_crop;
 	// outputs
 	std::vector<uint64_t> uids;
 	std::vector<cv::Rect> objs;
+	std::vector<int> labels;
 
 	double tick_freq = cv::getTickFrequency();
 	double tick_start, tick_stop;
 
 	while(vid_cap.isOpened()){
-		vid_cap >> im_RAW;
-		if (im_RAW.empty()) break;
+		vid_cap >> im_raw;
+		if (im_raw.empty()) break;
 		
 		// resize to smaller size for visualization
-		cv::Mat im_small;
-		cv::resize(im_RAW, im_small, cv::Size(480, 360));
+		int vis_size = 360;
+		if (im_raw.cols > im_raw.rows){
+			int small_height = vis_size;
+			int small_width = vis_size * im_raw.cols / im_raw.rows;
+			cv::resize(im_raw, im_small, cv::Size(small_width, small_height));
+			int crop_size = (small_width - small_height)/2;
+			im_small(cv::Rect(crop_size, 0, vis_size, vis_size)).copyTo(im_crop);
+		}else{
+			int small_width = vis_size;
+			int small_height = vis_size * im_raw.rows / im_raw.cols;
+			cv::resize(im_raw, im_small, cv::Size(small_width, small_height));
+			int crop_size = (small_height - small_width)/2;
+			im_small(cv::Rect(crop_size, 0, vis_size, vis_size)).copyTo(im_crop);
+		}
 
 		tick_start = cv::getTickCount();
 		// track the objects in current frame
-		tracker.Track(im_small, uids, objs, true);
+		tracker.Track(im_crop, uids, labels, objs, true);
 		tick_stop = cv::getTickCount();
 		double cost_ms = (tick_stop - tick_start)*1000 / tick_freq;
 		LOGI("FPS: %d", int(1000/cost_ms));
 		
-		cv::imshow("demo", im_small);
+		cv::imshow("demo", im_crop);
 		int code = cv::waitKey(30);
 		if (code == 27 || code==32) break;
 	}

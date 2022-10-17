@@ -347,7 +347,7 @@ float NanoTrack::track(cv::Mat const& im, cv::Rect& bbox) {
 }
 
 
-// Éú³ÉÃ¿Ò»¸ö¸ñµãµÄ×ø±ê
+// ï¿½ï¿½ï¿½ï¿½Ã¿Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 void NanoTrack::create_window()
 {
     int score_size = cfg.score_size;
@@ -368,7 +368,7 @@ void NanoTrack::create_window()
     }
 }
 
-// Éú³ÉÃ¿Ò»¸ö¸ñµãµÄ×ø±ê
+// ï¿½ï¿½ï¿½ï¿½Ã¿Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 void NanoTrack::create_grids()
 {
     /*

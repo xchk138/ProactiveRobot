@@ -28,4 +28,9 @@
 #define LOGD(fmt, ...)
 #endif
 
+// cross platform build
+#ifndef _WIN32
+#define sprintf_s sprintf
+#endif
+
 #endif // UTILS_H

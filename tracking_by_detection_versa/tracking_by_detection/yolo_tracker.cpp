@@ -12,11 +12,7 @@ void print_id_list(std::vector<int> const& id_list) {
     std::stringstream ss("");
     ss << "[";
     for (int i = 0; i < int(id_list.size()); ++i) {
-        #ifdef _WIN32
         sprintf_s(_buf, " %d", id_list[i]);
-        #else
-        sprintf(_buf, " %d", id_list[i]);
-        #endif
         ss << _buf;
     }
     ss << " ]";
@@ -49,8 +45,11 @@ void YoloTracker::VisTrackObjs(
     cv::Mat& _im,
     cv::Point2d scale
 ) {
-    if (bboxes_track.size() > colors.size()) {
-        LOGE("_bboxes(%d) > _colors(%d)", int(bboxes_track.size()), int(colors.size()));
+    if (bboxes_track.size() != colors.size()) {
+        LOGE("bboxes(%d) != colors(%d)", int(bboxes_track.size()), int(colors.size()));
+    }
+    if (bboxes_track.size() != labels_track.size()) {
+        LOGE("bboxes(%d) != labels(%d)", int(bboxes_track.size()), int(labels_track.size()));
     }
     for (int i = 0; i < bboxes_track.size(); ++i) {
         cv::Rect _bbox = bboxes_track[i];
@@ -58,7 +57,18 @@ void YoloTracker::VisTrackObjs(
         _bbox.width = int(std::floor(scale.x * _bbox.width));
         _bbox.y = int(std::floor(scale.y * _bbox.y));
         _bbox.height = int(std::floor(scale.y * _bbox.height));
-        cv::rectangle(_im, _bbox, colors[i], 3, 8);
+        // in case outof visual region
+        _bbox.x = std::max(min_bbox_margin, _bbox.x);
+        _bbox.y = std::max(min_bbox_margin, _bbox.y);
+        _bbox.width = std::min(_im.cols - min_bbox_margin - _bbox.x, _bbox.width);
+        _bbox.height = std::min(_im.rows - min_bbox_margin - _bbox.y, _bbox.height);
+        if (_bbox.width <= 0 || _bbox.height <= 0) continue;
+        cv::rectangle(_im, _bbox, colors[i], 2, 8);
+        char buf[64];
+        sprintf_s(buf, "%ld: %s", object_ids[i], label_names[labels_track[i]].c_str());
+        int _line_h = 20;
+        cv::putText(_im, cv::String(buf), cv::Point(_bbox.x, _bbox.y + _line_h), 
+            cv::FONT_HERSHEY_COMPLEX, 0.5, colors[i], 2, 8);
     }
 }
 
@@ -74,8 +84,7 @@ void YoloTracker::Compute(
     //net.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
     //net.setPreferableTarget(cv::dnn::DNN_TARGET_OPENCL);
     net.setInput(blob);
-    net.forward(outputs, "output");
-    LOGD("outputs has %d elements, with first %d x %d", int(outputs.size()), int(outputs[0].rows), int(outputs[0].cols));
+    net.forward(outputs, cOutputNode);
 }
 
 
@@ -85,29 +94,26 @@ void YoloTracker::PostprocessCoco() {
     std::vector<int> classes;
     boxes.clear();
     float* data = (float*)output_detect[0].data;
-    const int rows = YOLO_OUT_ROWS;
+    const int rows = cOutputRows;
     // Iterate through all detections.
-    class_ids.clear();
+    labels_detect.clear();
     bboxes_detect.clear();
 
-    for (int i = 0; i < rows; ++i)
-    {
+    for (int i = 0; i < rows; ++i){
         float confidence = data[4];
         // Discard bad detections and continue.
-        if (confidence >= CONFIDENCE_THRESHOLD)
-        {
+        if (confidence >= cConfidenceThreshold){
             float* classes_scores = data + 5;
             // Create a 1x85 Mat and store class scores of 80 classes.
-            cv::Mat scores(1, class_names.size(), CV_32FC1, classes_scores);
-            // Perform minMaxLoc and acquire the index of best class  score.
+            cv::Mat scores(1, label_names.size(), CV_32FC1, classes_scores);
+            // Perform minMaxLoc and acquire the index of best class score.
             cv::Point class_id;
             double max_class_score;
             cv::minMaxLoc(scores, nullptr, &max_class_score, nullptr, &class_id);
             // Continue if the class score is above the threshold.
-            if (max_class_score > SCORE_THRESHOLD)
-            {
+            if (max_class_score > cScoreThreshold){
                 // Store class ID and confidence in the pre-defined respective vectors.
-                confidences.push_back(confidence);
+                confidences.push_back(max_class_score);
                 classes.push_back(class_id.x);
                 // Center.
                 float cx = data[0];
@@ -129,14 +135,14 @@ void YoloTracker::PostprocessCoco() {
     }
     // Perform Non-Maximum Suppression and draw predictions.
     std::vector<int> indices;
-    cv::dnn::NMSBoxes(boxes, confidences, SCORE_THRESHOLD, NMS_THRESHOLD, indices);
+    cv::dnn::NMSBoxes(boxes, confidences, cScoreThreshold, cNmsThreshold, indices);
 
     for (int i = 0; i < indices.size(); i++) {
-        std::string _name = class_names[classes[indices[i]]];
+        std::string _name = label_names[classes[indices[i]]];
         LOGI("%d: %s %.3f%%", i, _name.c_str(), confidences[indices[i]]*100);
-        //if (_name == "person") {
+        //if (_name == "boat") {
             bboxes_detect.push_back(boxes[indices[i]]);
-            class_ids.emplace_back(classes[indices[i]]);
+            labels_detect.emplace_back(classes[indices[i]]);
         //}
     }
 }
@@ -151,7 +157,7 @@ void YoloTracker::PostprocessFace() {
     std::vector<std::vector<cv::Point2f>> pts;
 
     auto* data = (float*)output_detect[0].data;
-    const int rows = YOLO_OUT_ROWS;
+    const int rows = cOutputRows;
 
     bboxes_detect.clear();
     key_pts.clear();
@@ -161,14 +167,14 @@ void YoloTracker::PostprocessFace() {
     {
         float confidence = data[4]; // the 5th item for obj score
         // Discard bad detections and continue.
-        if (confidence >= CONFIDENCE_THRESHOLD)
+        if (confidence >= cConfidenceThreshold)
         {
             float class_score = data[15]; // the last item for class score
             // Continue if the class score is above the threshold.
-            if (class_score > SCORE_THRESHOLD)
+            if (class_score > cScoreThreshold)
             {
                 // Store class ID and confidence in the pre-defined respective vectors.
-                confidences.push_back(confidence);
+                confidences.push_back(class_score);
                 // Center.
                 float cx = data[0];
                 float cy = data[1];
@@ -195,7 +201,7 @@ void YoloTracker::PostprocessFace() {
     }
     // Perform Non-Maximum Suppression and draw predictions.
     std::vector<int> indices;
-    cv::dnn::NMSBoxes(boxes, confidences, SCORE_THRESHOLD, NMS_THRESHOLD, indices);
+    cv::dnn::NMSBoxes(boxes, confidences, cScoreThreshold, cNmsThreshold, indices);
 
     for (int indice : indices) {
         bboxes_detect.emplace_back(boxes[indice]);
@@ -223,7 +229,7 @@ YoloTracker::YoloTracker(
     // load YOLOv5
     try {
         LOGI("reading Yolo from path: %s", path_detector);
-        net = cv::dnn::readNet(path_detector);
+        net = cv::dnn::readNetFromONNX(path_detector);
         LOGI("reading Yolo done.");
     }
     catch (Exception & ee) {
@@ -264,6 +270,7 @@ bool YoloTracker::Available() {
 bool YoloTracker::Track(
     cv::Mat& im_raw,
     std::vector<uint64_t>& _uids,
+    std::vector<int> & _types,
     std::vector<cv::Rect>& _objs,
     bool _vis) {
     if (im_raw.empty()) return false;
@@ -281,36 +288,38 @@ bool YoloTracker::Track(
         track_time = 0;
         Compute(output_detect, _im);
         LOGD("YOLO Compute done.");
-
-        bboxes_detect.clear();
         PostprocessCoco();
         LOGD("YOLO Postprocess done.");
 
         if (bboxes_track.empty()) {
             LOGD("tracking list empty, creating them!");
             NanoTrackClear(nano_trackers);
-
-            for (auto& bb : bboxes_detect)
+            for (int i=0; i<bboxes_detect.size(); ++i){
                 bboxes_track.emplace_back(cv::Rect(
-                    bb.x * scale_track,
-                    bb.y * scale_track,
-                    bb.width * scale_track,
-                    bb.height * scale_track));
+                    bboxes_detect[i].x * scale_track,
+                    bboxes_detect[i].y * scale_track,
+                    bboxes_detect[i].width * scale_track,
+                    bboxes_detect[i].height * scale_track));
+                labels_track.emplace_back(labels_detect[i]);
+            }
+            // allocate colors to visualize new targets
             GetRandomColors(colors, bboxes_track.size());
-            for (auto i = 0; i < bboxes_track.size(); ++i) {
+            for (int i = 0; i < bboxes_track.size(); ++i) {
                 object_ids.push_back(GetUniqueObjectId());
                 nano_trackers.emplace_back(new NanoTrack());
-                nano_trackers[nano_trackers.size() - 1]->load_model(mPathTrackerBackbone, mPathTrackerHead);
+                nano_trackers[nano_trackers.size() - 1]->load_model(
+                    mPathTrackerBackbone, mPathTrackerHead);
                 nano_trackers[nano_trackers.size() - 1]->init(
                     _im_track, bboxes_track[i]);
-
                 offline_time.push_back(0);
             }
             LOGD("tracking list created.");
         }
         else {
             LOGD("tracking list merge detection result...");
-            for (auto& bb : bboxes_detect) {
+            for (int i=0; i<bboxes_detect.size(); ++i) {
+                cv::Rect & bb = bboxes_detect[i];
+                int & lb = labels_detect[i];
                 // convert bb to track scale
                 bb.x *= scale_track;
                 bb.y *= scale_track;
@@ -321,7 +330,7 @@ bool YoloTracker::Track(
                 int match_id = -1;
 
                 for (auto j = 0; j < bboxes_track.size(); ++j) {
-                    if (BoundingBoxIOU(bb, bboxes_track[j]) >= IOU_THE_SAME) {
+                    if (BoundingBoxIOU(bb, bboxes_track[j]) >= cIouThreshold) {
                         _meet_the_same = true;
                         match_id = j;
                         break;
@@ -330,22 +339,23 @@ bool YoloTracker::Track(
                 if (!_meet_the_same) {
                     object_ids.push_back(GetUniqueObjectId());
                     bboxes_track.emplace_back(bb);
+                    labels_track.emplace_back(lb);
                     nano_trackers.emplace_back(new NanoTrack());
                     nano_trackers[nano_trackers.size() - 1]->load_model(mPathTrackerBackbone, mPathTrackerHead);
-                    nano_trackers[nano_trackers.size() - 1]->init(
-                        _im_track,
-                        bboxes_track[bboxes_track.size() - 1]);
-
+                    nano_trackers[nano_trackers.size() - 1]->init(_im_track, bboxes_track[bboxes_track.size() - 1]);
                     offline_time.push_back(0);
                     colors.emplace_back(RandomColor());
                 }
                 else {
                     // replace the tracking one with detection result
                     bboxes_track[match_id] = bb;
+                    if (labels_track[match_id] != lb){
+                        // different objects, update id
+                        object_ids[match_id] = GetUniqueObjectId();
+                        labels_track[match_id] = lb;
+                    }
                     // and reinitialize the tracker
-                    nano_trackers[match_id]->init(
-                        _im_track,
-                        bboxes_track[match_id]);
+                    nano_trackers[match_id]->init(_im_track, bboxes_track[match_id]);
                 }
             }
             LOGD("tracking list merged.");
@@ -358,20 +368,30 @@ bool YoloTracker::Track(
             std::vector<int> remove_ids;
 
             for (auto i = 0; i < bboxes_track.size(); ++i) {
-                //trackers[i]->update(_im_track, bboxes_track[i]);
-                //float _track_score = trackers[i]->getTrackingScore();
                 float _track_score = nano_trackers[i]->track(_im_track, bboxes_track[i]);
-
                 LOGD("tracking target #[%d]: %.3f", i, _track_score);
+                // if the bounindg rect is too small, then remove it
+                if(bboxes_track[i].area() < min_bbox_area){
+                    remove_ids.push_back(i);
+                    continue;
+                }
+                // if tracking confidence is low, then remove it
                 if (_track_score < 0.95) {
                     offline_time[i] ++;
+                    if (offline_time[i] > max_offline_time) {
+                        remove_ids.push_back(i);
+                        continue;
+                    }
                 }
                 else {
                     offline_time[i] = 0;
                 }
+            }
 
+            for (auto i = 0; i < bboxes_track.size(); ++i) {
+                if (offline_time[i] > max_offline_time) continue;
                 for (auto j = i + 1; j < bboxes_track.size(); ++j) {
-                    if (BoundingBoxIOU(bboxes_track[i], bboxes_track[j]) >= IOU_THE_SAME) {
+                    if (BoundingBoxIOU(bboxes_track[i], bboxes_track[j]) >= cIouThreshold) {
                         // reduce duplicates
                         remove_ids.push_back(i);
                         break;
@@ -386,27 +406,7 @@ bool YoloTracker::Track(
             for (int remove_id : remove_ids) {
                 object_ids.erase(object_ids.begin() + remove_id);
                 bboxes_track.erase(bboxes_track.begin() + remove_id);
-                //trackers.erase(trackers.begin() + remove_id);
-                delete nano_trackers[remove_id];
-                nano_trackers.erase(nano_trackers.begin() + remove_id);
-                colors.erase(colors.begin() + remove_id);
-                offline_time.erase(offline_time.begin() + remove_id);
-            }
-
-            remove_ids.clear();
-            for (auto i = 0; i < offline_time.size(); ++i) {
-                if (offline_time[i] > max_offline_time) {
-                    remove_ids.push_back(i);
-                }
-            }
-
-            std::sort(remove_ids.begin(), remove_ids.end(), std::greater<int>());
-            print_id_list(remove_ids);
-            
-            for (int remove_id : remove_ids) {
-                object_ids.erase(object_ids.begin() + remove_id);
-                bboxes_track.erase(bboxes_track.begin() + remove_id);
-                //trackers.erase(trackers.begin() + remove_id);
+                labels_track.erase(labels_track.begin() + remove_id);
                 delete nano_trackers[remove_id];
                 nano_trackers.erase(nano_trackers.begin() + remove_id);
                 colors.erase(colors.begin() + remove_id);
@@ -433,19 +433,14 @@ bool YoloTracker::Track(
     // copy the results to output list
     _uids.clear();
     _objs.clear();
+    _types.clear();
     for (int _i = 0; _i < bboxes_track.size(); ++_i) {
+        _types.emplace_back(labels_track[_i]);
         _uids.emplace_back(object_ids[_i]);
         _objs.emplace_back(bboxes_track[_i]);
     }
 
     return true;
-}
-
-
-bool YoloTracker::GetLastResult(std::vector<cv::Rect>& objs) {
-    if (!objs.empty()) objs.resize(0);
-    std::copy(bboxes_track.begin(), bboxes_track.end(), objs.begin());
-    return mAvailable;
 }
 
 
