@@ -5,7 +5,7 @@
 #include <opencv2/opencv.hpp>
 
 // configuration
-#define YOLO_VER 5
+#define YOLO_VER 6
 #define YOLO_SIZE 224
 // different yolo models have various size ratio between input and output
 #if YOLO_VER == 5
@@ -19,8 +19,8 @@
 // global model loading configuration
 const static cv::String model_base = "models/";
 // YOLO
-const static cv::String yolov5_split = "YOLOv5/";
-const static cv::String yolov5_main = "yolov5n-224.onnx";
+const static cv::String yolov5_split = "YOLOv6/";
+const static cv::String yolov5_main = "yolov6n_v2_repopt.onnx";
 // NanoTrack
 const static cv::String nanotrack_split = "NanoTrack/";
 const static cv::String nanotrack_backbone = "nanotrack_backbone.onnx";

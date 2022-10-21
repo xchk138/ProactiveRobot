@@ -1,0 +1,5 @@
+*.txt
+images/train/*.jpg
+images/val/*.jpg
+labels/train/*.txt
+labels/val/*.txt
