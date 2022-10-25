@@ -83,6 +83,13 @@ def SaveLabel(path_labels, frame_id, bbox, w, h):
     y = bbox[1] * 1.0 / h
     w = bbox[2] * 1.0 / w
     h = bbox[3] * 1.0 / h
+    # restrict to range
+    x = min(1.0, max(0.0, x))
+    y = min(1.0, max(0.0, y))
+    w = min(1.0, max(0.0, w))
+    h = min(1.0, max(0.0, h))
+    x += w/2
+    y += h/2
     label_file = open('/'.join([path_labels, '%08d.txt' % frame_id]), 'wt')
     label_file.write('%d %.7f %.7f %.7f %.7f\n' % (cid, x, y, w, h))
     label_file.close()
