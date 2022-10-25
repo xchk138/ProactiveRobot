@@ -6,7 +6,7 @@
 
 int main() {
 	cv::Mat _im_RAW, _im_crop, _im;
-	cv::VideoCapture vid_cap("docking.mp4");
+	cv::VideoCapture vid_cap("dock.mp4");
 
 	// create a tracker based on YOLO and NanoTrack
 	cv::String path_detector = model_base + yolov5_split + yolov5_main;

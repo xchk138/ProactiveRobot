@@ -131,7 +131,7 @@ void YoloTracker::PostprocessCoco() {
             }
         }
         // Jump to the next row.
-        data += 85;
+        data += cOutputCols;
     }
     // Perform Non-Maximum Suppression and draw predictions.
     std::vector<int> indices;
@@ -197,7 +197,7 @@ void YoloTracker::PostprocessFace() {
             }
         }
         // Jump to the next row.
-        data += 16;
+        data += 16;// 5 kepoints makes 10 coords, plus 1 class and conf 1, bounding box 4
     }
     // Perform Non-Maximum Suppression and draw predictions.
     std::vector<int> indices;

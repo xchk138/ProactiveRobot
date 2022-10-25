@@ -87,6 +87,7 @@ public:
     const float cNmsThreshold = 0.45;
     const float cConfidenceThreshold = 0.2; // 0.2 object score
     const float cIouThreshold = 0.6;
+    const int cOutputCols = num_classes + 5;
     const int cOutputRows = round(YOLO_RATIO*YOLO_SIZE*YOLO_SIZE);
     const char * cOutputNode = YOLO_OUTPUT;
 
