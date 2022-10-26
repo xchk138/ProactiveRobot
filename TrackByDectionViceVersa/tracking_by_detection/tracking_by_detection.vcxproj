@@ -140,6 +140,7 @@
     <ClCompile Include="yolo_tracker.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="config.h" />
     <ClInclude Include="nano_track.h" />
     <ClInclude Include="utils.h" />
     <ClInclude Include="yolo_tracker.h" />

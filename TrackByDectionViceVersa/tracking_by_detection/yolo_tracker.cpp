@@ -376,7 +376,7 @@ bool YoloTracker::Track(
                     continue;
                 }
                 // if tracking confidence is low, then remove it
-                if (_track_score < 0.95) {
+                if (_track_score < 0.98) {
                     offline_time[i] ++;
                     if (offline_time[i] > max_offline_time) {
                         remove_ids.push_back(i);
