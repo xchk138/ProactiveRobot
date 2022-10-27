@@ -83,9 +83,9 @@ public:
     const cv::Size detect_size = { YOLO_SIZE, YOLO_SIZE };
     const cv::Size track_size = { YOLO_SIZE, YOLO_SIZE };
     // Detection params
-    const float cScoreThreshold = 0.37; // 0.37 class score
+    const float cScoreThreshold = 0.5; // 0.37 class score
     const float cNmsThreshold = 0.45;
-    const float cConfidenceThreshold = 0.2; // 0.2 object score
+    const float cConfidenceThreshold = 0.5; // 0.2 object score
     const float cIouThreshold = 0.6;
     const int cOutputCols = num_classes + 5;
     const int cOutputRows = round(YOLO_RATIO*YOLO_SIZE*YOLO_SIZE);

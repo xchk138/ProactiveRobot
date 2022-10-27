@@ -113,7 +113,8 @@ void YoloTracker::PostprocessCoco() {
             // Continue if the class score is above the threshold.
             if (max_class_score > cScoreThreshold){
                 // Store class ID and confidence in the pre-defined respective vectors.
-                confidences.push_back(max_class_score);
+                //confidences.push_back(max_class_score);
+                confidences.push_back(confidence * max_class_score);
                 classes.push_back(class_id.x);
                 // Center.
                 float cx = data[0];
