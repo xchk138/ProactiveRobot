@@ -79,19 +79,19 @@ def SaveImage(path_images, frame_id, im):
 def SaveLabel(path_labels, frame_id, bbox, w, h):
     cid = 0 # single class
     # create a txt file
-    x = bbox[0] * 1.0 / w
-    y = bbox[1] * 1.0 / h
-    w = bbox[2] * 1.0 / w
-    h = bbox[3] * 1.0 / h
+    bx = bbox[0] * 1.0 / w
+    by = bbox[1] * 1.0 / h
+    bw = bbox[2] * 1.0 / w
+    bh = bbox[3] * 1.0 / h
     # restrict to range
-    x = min(1.0, max(0.0, x))
-    y = min(1.0, max(0.0, y))
-    w = min(1.0, max(0.0, w))
-    h = min(1.0, max(0.0, h))
-    x += w/2
-    y += h/2
+    bx = min(1.0, max(0.0, bx))
+    by = min(1.0, max(0.0, by))
+    bw = min(1.0, max(0.0, bw))
+    bh = min(1.0, max(0.0, bh))
+    bx += bw/2
+    by += bh/2
     label_file = open('/'.join([path_labels, '%08d.txt' % frame_id]), 'wt')
-    label_file.write('%d %.7f %.7f %.7f %.7f\n' % (cid, x, y, w, h))
+    label_file.write('%d %.7f %.7f %.7f %.7f\n' % (cid, bx, by, bw, bh))
     label_file.close()
 
 
@@ -162,7 +162,7 @@ if __name__ == '__main__':
         if score < min_score:
             while not SetTarget(eye, im):
                 im = ProcessImage(SkipFrames(vid, skip_frames), target_size)
-        # save the first frame with bounding box
+        # save the frame with bounding box
         SaveImageAndLabel(frame_id, im)
         frame_id += 1
         im = VisualizeBoundingBox(im, [eye.bbox])
