@@ -5,9 +5,42 @@ import cv2
 import os
 from enum import Enum
 
+np.random.seed(168)
 
-LABEL_NAMES = ['DianBiao', 'YeJin']
-LABEL_COLORS = [(180, 80, 200), (217, 217, 0)]
+LABEL_NAMES = ['YuanBiao', 'YeJing']
+
+
+def hue2rgb(p, q, t):
+            if t < 0: t += 1
+            if t > 1: t -= 1
+            if t < 1/6.0: return p + (q - p) * 6 * t
+            if t < 1/2.0: return q
+            if t < 2/3.0: return p + (q - p) * (2/3.0 - t) * 6
+            return p
+
+def HSL2RGB(h, s, l):
+    if s == 0:
+        r = g = b = l
+    else:
+        if l < 0.5:
+            q = l * (1 + s)
+        else:
+            q = l + s - l * s
+        p = 2 * l - q
+        r = hue2rgb(p, q, h + 1/3.0)
+        g = hue2rgb(p, q, h)
+        b = hue2rgb(p, q, h - 1/3.0)
+    return (np.round(r * 255), np.round(g * 255), np.round(b * 255))
+
+def GenerateColorMap(size, chrom_thres=0.7, illum_range=(0.3, 0.6)):
+    hue = np.random.rand(size)
+    sat = np.random.rand(size) * (1.0-chrom_thres) + chrom_thres
+    lig = np.random.rand(size) * (illum_range[1]-illum_range[0]) + illum_range[0]
+    return [HSL2RGB(hue[i], sat[i], lig[i]) for i in range(size)]
+
+LABEL_COLORS = GenerateColorMap(len(LABEL_NAMES), 0.7)
+print(LABEL_COLORS)
+
 
 def VEC(x):
     return np.array(x)
@@ -153,21 +186,21 @@ def ShowDetection(im: np.ndarray, bboxes:list, labels:list):
 
 def OnDrawRect(event, x, y, flags, params:DrawConsole):
     if  event == cv2.EVENT_LBUTTONDOWN:
-        print("mouse click down: %d %d"%(x,y))
+        #print("mouse click down: %d %d"%(x,y))
         params.start((x, y))
         params.closeMenu((x, y))
     if  event == cv2.EVENT_LBUTTONUP:
-        print("mouse click up: %d %d" % (x, y))
+        #print("mouse click up: %d %d" % (x, y))
         params.stop((x, y))
         params.selectLabel((x, y))
     if  event == cv2.EVENT_LBUTTONDBLCLK:
-        print('mouse double clicked, task cancelled.')
+        #print('mouse double clicked, task cancelled.')
         params.cancel()
     if event == cv2.EVENT_MOUSEMOVE:
         #print('mouse moved: %d %d' % (x, y))
         params.update((x, y))
     if event == cv2.EVENT_RBUTTONUP:
-        print('right button clicked!')
+        #print('right button clicked!')
         params.showMenu((x, y))
 
 
@@ -175,20 +208,25 @@ def GetBoundingRectsAndLabels(im):
     bboxes = []
     labels = []
     vis = im.copy()
+    last_label = 0
     while True:
         # get different classes
         info = DrawConsole(vis)
+        info.label = last_label
         info.win_name = 'select color to draw rects'
         cv2.imshow(info.win_name, vis)
         cv2.setMouseCallback(info.win_name, OnDrawRect, info)
-        cv2.waitKey(0)
+        code = cv2.waitKey(0)
         cv2.destroyAllWindows()
+        if code == ord('c') or code == ord('C'):
+            exit(0)
         if (VEC(info.bbox)<=0).any():
             break
         bboxes.append(info.bbox)
         labels.append(info.label)
         # draw these bboxes out
         ShowDetection(vis, bboxes, labels)
+        last_label = info.label
     return bboxes, labels
 
 
@@ -205,8 +243,8 @@ def GetImages(image_path):
                 im = cv2.cvtColor(im, cv2.COLOR_GRAY2BGR)
             elif im.shape[-1] == 4:
                 im = im[:,:,:3]
-            i += 1
             yield (i, _fn, im)
+            i += 1
 
 
 def SaveImage(path_images, frame_id, im):
@@ -263,8 +301,8 @@ if __name__ == '__main__':
     # generate text files 
     path_train_list = '/'.join([dataset_path, train_dir]) + '.txt'
     path_val_list = '/'.join([dataset_path, val_dir]) + '.txt'
-    file_train_list = open(path_train_list, 'wt')
-    file_val_list = open(path_val_list, 'wt')
+    file_train_list = open(path_train_list, 'at')
+    file_val_list = open(path_val_list, 'at')
 
     def SaveImageAndLabels(frame_id:int, im:np.ndarray, rects:list, labels:list) -> bool:
         if not len(rects):
@@ -281,13 +319,17 @@ if __name__ == '__main__':
 
     images = GetImages('data/Baidu_BiLeiQi')
     
-    counter = 0
+    counter = 66
+    begin_id = 66
     for i, fn, im in images:
+        if i < begin_id:
+            continue
         print("%d: %s" % (i, fn))
         rects, labels = GetBoundingRectsAndLabels(im)
         print(rects)
         print(labels)
-        print(im.shape[::-1])
+        #print(im.shape[::-1])
         # save the frame with bounding box
         if SaveImageAndLabels(counter, im, rects, labels):
             counter += 1
+            print(counter)
