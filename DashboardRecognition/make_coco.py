@@ -5,7 +5,7 @@ import cv2
 import os
 from enum import Enum
 
-np.random.seed(168)
+#np.random.seed(168)
 
 LABEL_NAMES = ['YuanBiao', 'YeJing']
 
@@ -52,10 +52,14 @@ def TUPLE(x: np.ndarray):
 # struct for draw Console
 class DrawConsole(object):
     class DrawState(Enum):
-        READY = 0
         BEGIN = 1
         END = 2
         MENU = 3
+    
+    class Target(object):
+        def __init__(self, bbox, label) -> None:
+            self.bbox = bbox
+            self.label = label
 
     @staticmethod
     def restrict(pos, size):
@@ -91,12 +95,23 @@ class DrawConsole(object):
     @staticmethod
     def point_in_rect(pos:tuple, rect:tuple):
         return (pos[0] > rect[0] and pos[0] < rect[2] and pos[1] > rect[1] and pos[1] < rect[3])
-    
+    @staticmethod
+    def ShowDetection(im: np.ndarray, bboxes:list, labels:list):
+        assert len(bboxes) == len(labels)
+        for i in range(len(bboxes)):
+            DrawConsole.draw_bbox(im, bboxes[i], labels[i])
+            DrawConsole.add_label(im, bboxes[i], labels[i])
+    @staticmethod
+    def show_targets(im: np.ndarray, targets:list):
+        for i in range(len(targets)):
+            DrawConsole.draw_bbox(im, targets[i].bbox, targets[i].label)
+            DrawConsole.add_label(im, targets[i].bbox, targets[i].label)
 
     def __init__(self, im, win_name='draw rect') -> None:
-        self.state = DrawConsole.DrawState.READY
+        self.state = DrawConsole.DrawState.END
         self.win_name = win_name
         self.im_ori = im
+        self.im_tmp = im.copy()
         self.im_vis = im.copy()
         self.start_pos = (0, 0)
         self.stop_pos = (0, 0)
@@ -104,51 +119,56 @@ class DrawConsole(object):
         self.bbox = (0, 0, 0, 0)
         self.menu_pos = (0, 0)
         self.menu_cell_size = (100, 20)
+        self.targets = [] # Target type
 
     def start(self, pos):
-        if self.state == DrawConsole.DrawState.READY:
+        if self.state == DrawConsole.DrawState.END:
             pos = DrawConsole.restrict(pos, DrawConsole.shape_to_size(self.im_ori.shape))
             self.start_pos = pos
             self.state = DrawConsole.DrawState.BEGIN
 
     def stop(self, pos):
         if self.state == DrawConsole.DrawState.BEGIN:
+            self.state = DrawConsole.DrawState.END
             pos = DrawConsole.restrict(pos, DrawConsole.shape_to_size(self.im_ori.shape))
             self.stop_pos = pos
             if np.any(VEC(self.stop_pos) - VEC(self.start_pos) == 0):
                 print('no rect is drawn!')
-                self.state = DrawConsole.DrawState.READY
                 self.bbox = (0, 0, 0, 0)
-                self.im_vis = self.im_ori.copy()
+                self.im_vis = self.im_tmp.copy()
                 cv2.imshow(self.win_name, self.im_vis)
             else:
                 self.bbox = (min(self.start_pos[0], self.stop_pos[0]),
                     min(self.start_pos[1], self.stop_pos[1]), 
                     abs(self.start_pos[0] - self.stop_pos[0]), 
                     abs(self.start_pos[1] - self.stop_pos[1]))
-                self.state = DrawConsole.DrawState.END
                 # draw labels on the top left of the rect
                 DrawConsole.add_label(self.im_vis, self.bbox, self.label)
                 cv2.imshow(self.win_name, self.im_vis)
+                # add this target to list
+                self.targets.append(DrawConsole.Target(self.bbox, self.label))
+                self.im_tmp = self.im_vis.copy()
 
     def update(self, pos):
         if self.state == DrawConsole.DrawState.BEGIN:
             pos = DrawConsole.restrict(pos, DrawConsole.shape_to_size(self.im_ori.shape))
-            self.im_vis = self.im_ori.copy()
+            self.im_vis = self.im_tmp.copy()
             cv2.rectangle(self.im_vis, self.start_pos, pos, LABEL_COLORS[self.label], 2)
             cv2.imshow(self.win_name, self.im_vis)
 
     def cancel(self):
         if self.state == DrawConsole.DrawState.END:
-            self.state = DrawConsole.DrawState.READY
-            self.bbox = (0, 0, 0, 0)
-            self.im_vis = self.im_ori.copy()
-            cv2.imshow(self.win_name, self.im_vis)
+            if len(self.targets) > 0:
+                self.targets.pop()
+                self.im_tmp = self.im_ori.copy()
+                DrawConsole.show_targets(self.im_tmp, self.targets)
+                self.im_vis = self.im_tmp.copy()
+                cv2.imshow(self.win_name, self.im_vis)
 
     def showMenu(self, pos):
-        if self.state == DrawConsole.DrawState.READY or self.state == DrawConsole.DrawState.MENU:
+        if self.state == DrawConsole.DrawState.END or self.state == DrawConsole.DrawState.MENU:
             self.state = DrawConsole.DrawState.MENU
-            self.im_vis = self.im_ori.copy()
+            self.im_vis = self.im_tmp.copy()
             label_size = self.menu_cell_size
             self.menu_pos = pos
             for i in range(len(LABEL_NAMES)):
@@ -161,73 +181,62 @@ class DrawConsole(object):
     def closeMenu(self, pos):
         if self.state == DrawConsole.DrawState.MENU:
             if not DrawConsole.point_in_rect(pos, DrawConsole.menu_rect(self.menu_pos, self.menu_cell_size)):
-                self.im_vis = self.im_ori.copy()
+                self.im_vis = self.im_tmp.copy()
                 cv2.imshow(self.win_name, self.im_vis)
-                self.state = DrawConsole.DrawState.READY
+                self.state = DrawConsole.DrawState.END
     
     def selectLabel(self, pos):
         if self.state == DrawConsole.DrawState.MENU:
             if DrawConsole.point_in_rect(pos, DrawConsole.menu_rect(self.menu_pos, self.menu_cell_size)):
                 # find which menu cell is on
                 self.label = (pos[1] - self.menu_pos[1]) // self.menu_cell_size[1]
-                self.im_vis = self.im_ori.copy()
+                self.im_vis = self.im_tmp.copy()
                 cv2.rectangle(self.im_vis, (0, 0), self.menu_cell_size, LABEL_COLORS[ self.label], -1)
                 DrawConsole.add_label(self.im_vis, (0, self.menu_cell_size[1], 0,0),  self.label)
                 cv2.imshow(self.win_name, self.im_vis)
-                self.state = DrawConsole.DrawState.READY
-
-
-def ShowDetection(im: np.ndarray, bboxes:list, labels:list):
-    assert len(bboxes) == len(labels)
-    for i in range(len(bboxes)):
-        DrawConsole.draw_bbox(im, bboxes[i], labels[i])
-        DrawConsole.add_label(im, bboxes[i], labels[i])
+                self.state = DrawConsole.DrawState.END
 
 
 def OnDrawRect(event, x, y, flags, params:DrawConsole):
     if  event == cv2.EVENT_LBUTTONDOWN:
         #print("mouse click down: %d %d"%(x,y))
-        params.start((x, y))
-        params.closeMenu((x, y))
+        if params.state == DrawConsole.DrawState.END:
+            params.start((x, y))
+        elif params.state == DrawConsole.DrawState.MENU:
+            params.closeMenu((x, y))
     if  event == cv2.EVENT_LBUTTONUP:
         #print("mouse click up: %d %d" % (x, y))
-        params.stop((x, y))
-        params.selectLabel((x, y))
+        if params.state == DrawConsole.DrawState.BEGIN:
+            params.stop((x, y))
+        elif params.state == DrawConsole.DrawState.MENU:
+            params.selectLabel((x, y))
     if  event == cv2.EVENT_LBUTTONDBLCLK:
         #print('mouse double clicked, task cancelled.')
-        params.cancel()
+        if params.state == DrawConsole.DrawState.END:
+            params.cancel()
     if event == cv2.EVENT_MOUSEMOVE:
         #print('mouse moved: %d %d' % (x, y))
-        params.update((x, y))
+        if params.state == DrawConsole.DrawState.BEGIN:
+            params.update((x, y))
     if event == cv2.EVENT_RBUTTONUP:
         #print('right button clicked!')
-        params.showMenu((x, y))
+        if params.state == DrawConsole.DrawState.END or params.state == DrawConsole.DrawState.MENU:
+            params.showMenu((x, y))
 
 
-def GetBoundingRectsAndLabels(im):
-    bboxes = []
-    labels = []
+def GetBoundingRectsAndLabels(im, default_label=0):
     vis = im.copy()
-    last_label = 0
-    while True:
-        # get different classes
-        info = DrawConsole(vis)
-        info.label = last_label
-        info.win_name = 'select color to draw rects'
-        cv2.imshow(info.win_name, vis)
-        cv2.setMouseCallback(info.win_name, OnDrawRect, info)
-        code = cv2.waitKey(0)
-        cv2.destroyAllWindows()
-        if code == ord('c') or code == ord('C'):
-            exit(0)
-        if (VEC(info.bbox)<=0).any():
-            break
-        bboxes.append(info.bbox)
-        labels.append(info.label)
-        # draw these bboxes out
-        ShowDetection(vis, bboxes, labels)
-        last_label = info.label
-    return bboxes, labels
+    # get different classes
+    info = DrawConsole(vis)
+    info.win_name = 'select color to draw rects'
+    info.label = default_label
+    cv2.imshow(info.win_name, vis)
+    cv2.setMouseCallback(info.win_name, OnDrawRect, info)
+    code = cv2.waitKey(0)
+    cv2.destroyAllWindows()
+    if code == ord('c') or code == ord('C'):
+        exit(0)
+    return [info.targets[i].bbox for i in range(len(info.targets))], [info.targets[i].label for i in range(len(info.targets))]
 
 
 def GetImages(image_path):
@@ -317,19 +326,19 @@ if __name__ == '__main__':
             AppendSampleToList(file_val_list, images_dir, val_dir, frame_id)
         return True
 
-    images = GetImages('data/Baidu_BiLeiQi')
+    images = GetImages('data/Baidu_YeJing')
     
-    counter = 66
-    begin_id = 66
+    counter = 920
+    begin_id = 0
     for i, fn, im in images:
         if i < begin_id:
             continue
         print("%d: %s" % (i, fn))
-        rects, labels = GetBoundingRectsAndLabels(im)
+        rects, labels = GetBoundingRectsAndLabels(im, default_label=1)
         print(rects)
         print(labels)
         #print(im.shape[::-1])
         # save the frame with bounding box
         if SaveImageAndLabels(counter, im, rects, labels):
             counter += 1
-            print(counter)
+            print('counter=%d' % counter)
