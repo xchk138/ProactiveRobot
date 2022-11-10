@@ -30,16 +30,16 @@ def HSL2RGB(h, s, l):
         r = hue2rgb(p, q, h + 1/3.0)
         g = hue2rgb(p, q, h)
         b = hue2rgb(p, q, h - 1/3.0)
-    return (np.round(r * 255), np.round(g * 255), np.round(b * 255))
+    return (int(np.round(r * 255)), int(np.round(g * 255)), int(np.round(b * 255)))
 
-def GenerateColorMap(size, chrom_thres=0.7, illum_range=(0.3, 0.6)):
+def GenerateColorMap(size, chrom_thres=0.8, illum_range=(0.2, 0.5)):
     hue = np.random.rand(size)
     sat = np.random.rand(size) * (1.0-chrom_thres) + chrom_thres
     lig = np.random.rand(size) * (illum_range[1]-illum_range[0]) + illum_range[0]
     return [HSL2RGB(hue[i], sat[i], lig[i]) for i in range(size)]
 
-LABEL_COLORS = GenerateColorMap(len(LABEL_NAMES), 0.7)
-print(LABEL_COLORS)
+LABEL_COLORS = GenerateColorMap(len(LABEL_NAMES), 0.8)
+#print(LABEL_COLORS)
 
 
 def VEC(x):
@@ -133,7 +133,7 @@ class DrawConsole(object):
             pos = DrawConsole.restrict(pos, DrawConsole.shape_to_size(self.im_ori.shape))
             self.stop_pos = pos
             if np.any(VEC(self.stop_pos) - VEC(self.start_pos) == 0):
-                print('no rect is drawn!')
+                #print('no rect is drawn!')
                 self.bbox = (0, 0, 0, 0)
                 self.im_vis = self.im_tmp.copy()
                 cv2.imshow(self.win_name, self.im_vis)
@@ -218,8 +218,7 @@ def OnDrawRect(event, x, y, flags, params:DrawConsole):
         #print('mouse moved: %d %d' % (x, y))
         if params.state == DrawConsole.DrawState.BEGIN:
             params.update((x, y))
-    if event == cv2.EVENT_RBUTTONUP:
-        #print('right button clicked!')
+    if event == cv2.EVENT_RBUTTONDOWN:
         if params.state == DrawConsole.DrawState.END or params.state == DrawConsole.DrawState.MENU:
             params.showMenu((x, y))
 
@@ -230,13 +229,16 @@ def GetBoundingRectsAndLabels(im, default_label=0):
     info = DrawConsole(vis)
     info.win_name = 'select color to draw rects'
     info.label = default_label
+    cv2.namedWindow(info.win_name, cv2.WINDOW_GUI_NORMAL)
+    cv2.setWindowProperty(info.win_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
     cv2.imshow(info.win_name, vis)
     cv2.setMouseCallback(info.win_name, OnDrawRect, info)
     code = cv2.waitKey(0)
     cv2.destroyAllWindows()
     if code == ord('c') or code == ord('C'):
         exit(0)
-    return [info.targets[i].bbox for i in range(len(info.targets))], [info.targets[i].label for i in range(len(info.targets))]
+    return ([info.targets[i].bbox for i in range(len(info.targets))], 
+    [info.targets[i].label for i in range(len(info.targets))])
 
 
 def GetImages(image_path):
@@ -326,19 +328,18 @@ if __name__ == '__main__':
             AppendSampleToList(file_val_list, images_dir, val_dir, frame_id)
         return True
 
-    images = GetImages('data/Baidu_YeJing')
-    
-    counter = 920
-    begin_id = 0
+    images = GetImages('data/Baidu_YouWenBiao')
+
+    counter = 1091
+    begin_id = 172
     for i, fn, im in images:
         if i < begin_id:
             continue
-        print("%d: %s" % (i, fn))
-        rects, labels = GetBoundingRectsAndLabels(im, default_label=1)
-        print(rects)
-        print(labels)
+        print("GLOBAL(%d)-LOCAL(%d): %s" % (counter, i, fn))
+        rects, labels = GetBoundingRectsAndLabels(im, default_label=0)
+        #print(rects)
+        #print(labels)
         #print(im.shape[::-1])
         # save the frame with bounding box
         if SaveImageAndLabels(counter, im, rects, labels):
-            counter += 1
-            print('counter=%d' % counter)
+          counter += 1
