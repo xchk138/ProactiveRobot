@@ -233,7 +233,9 @@ def GetBoundingRectsAndLabels(im, default_label=0):
     cv2.setWindowProperty(info.win_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
     cv2.imshow(info.win_name, vis)
     cv2.setMouseCallback(info.win_name, OnDrawRect, info)
-    code = cv2.waitKey(0)
+    code = -1
+    while code not in [ord('c'), ord('C'), ord(' ')]:
+        code = cv2.waitKey(0)
     cv2.destroyAllWindows()
     if code == ord('c') or code == ord('C'):
         exit(0)
@@ -328,10 +330,10 @@ if __name__ == '__main__':
             AppendSampleToList(file_val_list, images_dir, val_dir, frame_id)
         return True
 
-    images = GetImages('data/Baidu_YouWenBiao')
+    images = GetImages('data/Baidu_YeYaBiao')
 
-    counter = 1091
-    begin_id = 172
+    counter = 1632
+    begin_id = 170
     for i, fn, im in images:
         if i < begin_id:
             continue
