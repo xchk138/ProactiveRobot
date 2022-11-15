@@ -4,6 +4,7 @@ import numpy as np
 import cv2
 import os
 from enum import Enum
+from inference import YoloDetector
 
 #np.random.seed(168)
 
@@ -223,12 +224,19 @@ def OnDrawRect(event, x, y, flags, params:DrawConsole):
             params.showMenu((x, y))
 
 
-def GetBoundingRectsAndLabels(im, default_label=0):
+def GetBoundingRectsAndLabels(im, default_label=0, backend=None):
     vis = im.copy()
-    # get different classes
     info = DrawConsole(vis)
     info.win_name = 'select color to draw rects'
     info.label = default_label
+
+    # use pretrained model to generate coarse detection result
+    if backend is not None:
+        bboxes, labels = backend.infer(im)
+        for i in range(len(bboxes)):
+            info.targets.append(DrawConsole.Target(bboxes[i], labels[i]))
+            DrawConsole.show_targets(vis, info.targets)
+
     cv2.namedWindow(info.win_name, cv2.WINDOW_GUI_NORMAL)
     cv2.setWindowProperty(info.win_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
     cv2.imshow(info.win_name, vis)
@@ -330,18 +338,19 @@ if __name__ == '__main__':
             AppendSampleToList(file_val_list, images_dir, val_dir, frame_id)
         return True
 
-    images = GetImages('data/Baidu_YeYaBiao')
+    images = GetImages('data/Baidu_YaLiBiao')
+    detector = YoloDetector('models/yolov5n-dashboard.onnx')
 
-    counter = 1632
-    begin_id = 170
+    counter = 3337
+    begin_id = 711
     for i, fn, im in images:
         if i < begin_id:
             continue
         print("GLOBAL(%d)-LOCAL(%d): %s" % (counter, i, fn))
-        rects, labels = GetBoundingRectsAndLabels(im, default_label=0)
+        rects, labels = GetBoundingRectsAndLabels(im, default_label=0, backend=detector)
         #print(rects)
         #print(labels)
         #print(im.shape[::-1])
         # save the frame with bounding box
-        if SaveImageAndLabels(counter, im, rects, labels):
-          counter += 1
+        #if SaveImageAndLabels(counter, im, rects, labels):
+        # counter += 1
