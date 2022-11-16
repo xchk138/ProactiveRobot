@@ -157,9 +157,13 @@ class DrawConsole(object):
             cv2.rectangle(self.im_vis, self.start_pos, pos, LABEL_COLORS[self.label], 2)
             cv2.imshow(self.win_name, self.im_vis)
 
-    def cancel(self):
+    def cancel(self, pos):
         if self.state == DrawConsole.DrawState.END:
             if len(self.targets) > 0:
+                # find the bounding boxes that has been clicked
+                for i in range(len(self.targets)):
+                    # if pos is in rect
+
                 self.targets.pop()
                 self.im_tmp = self.im_ori.copy()
                 DrawConsole.show_targets(self.im_tmp, self.targets)
@@ -214,7 +218,7 @@ def OnDrawRect(event, x, y, flags, params:DrawConsole):
     if  event == cv2.EVENT_LBUTTONDBLCLK:
         #print('mouse double clicked, task cancelled.')
         if params.state == DrawConsole.DrawState.END:
-            params.cancel()
+            params.cancel((x,y))
     if event == cv2.EVENT_MOUSEMOVE:
         #print('mouse moved: %d %d' % (x, y))
         if params.state == DrawConsole.DrawState.BEGIN:
