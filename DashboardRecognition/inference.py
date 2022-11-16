@@ -67,7 +67,6 @@ class YoloDetector(object):
                 # continue if the class score is above the threshold.
                 if max_class_score > self.score_threshold:
                     # Store class ID and confidence in the pre-defined respective vectors.
-                    # confidences.push_back(max_class_score)
                     confidences.append(confidence * max_class_score)
                     classes.append(class_id)
                     cx = data[i,0]
@@ -75,12 +74,12 @@ class YoloDetector(object):
                     w = data[i,2]
                     h = data[i,3]
                     # Bounding box coordinates.
-                    left = int((cx - 0.5 * w))
-                    top = int((cy - 0.5 * h))
+                    left = int(cx - 0.5 * w)
+                    top = int(cy - 0.5 * h)
                     width = int(w)
                     height = int(h)
                     # Store good detections in the boxes vector.
-                    boxes.append((left, top, width, height));
+                    boxes.append((left, top, width, height))
         
         # Perform Non-Maximum Suppression and draw predictions.
         indices = cv2.dnn.NMSBoxes(boxes, confidences, self.score_threshold, self.nms_threshold)
@@ -90,7 +89,7 @@ class YoloDetector(object):
         for i in range(len(indices)):
             bboxes_ret.append(boxes[indices[i]])
             labels_ret.append(classes[indices[i]])
-        return bboxes_ret, labels_ret
+        return self.remap_rects(bboxes_ret, labels_ret)
 
     def restrict(self, bboxes, labels, min_area=20):
         bboxes_ret = []
@@ -102,7 +101,7 @@ class YoloDetector(object):
             y1 = min(max(by, 0), h-1)
             x2 = min(max(bx+bw, 0), w-1)
             y2 = min(max(by+bh, 0), h-1)
-            bx, by = int(x1), int(y2)
+            bx, by = int(x1), int(y1)
             bw = int(x2 - x1)
             bh = int(y2 - y1)
             if bw>0 and bh>0 and bw*bh > min_area:
@@ -111,14 +110,10 @@ class YoloDetector(object):
         return bboxes_ret, labels_ret
 
     def remap_rects(self, bboxes, labels):
-        print(self.input_size)
-        print(self.infer_size)
-        print(self.pad_size)
-        print(self.size_padded)
         scale_ = 1.0*self.size_padded / self.infer_size
         px = self.pad_size[0]
         py = self.pad_size[1]
-        bboxes = [(x*scale_-px, y*scale_-py, w, h) for x,y,w,h in bboxes]
+        bboxes = [(x*scale_-px, y*scale_-py, w*scale_, h*scale_) for x,y,w,h in bboxes]
         return self.restrict(bboxes, labels)
 
     def infer(self, im:np.ndarray):
@@ -128,4 +123,4 @@ class YoloDetector(object):
         self.net.setInput(x)
         y = self.net.forward('output')
         bboxes, labels = self.postprocess(y)
-        return self.remap_rects(bboxes, labels)
+        return bboxes, labels
