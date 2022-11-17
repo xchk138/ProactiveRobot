@@ -111,6 +111,18 @@ class DrawConsole(object):
     def point_in_bbox(pos:tuple, bbox:tuple):
         rect = (bbox[0], bbox[1], bbox[0] + bbox[2], bbox[1] + bbox[3])
         return DrawConsole.point_in_rect(pos, rect)
+    @staticmethod
+    def make_alike(x: np.ndarray):
+        return np.zeros_like(x, x.dtype)
+    @staticmethod
+    def float_alike(x: np.ndarray):
+        return np.zeros_like(x, np.float32)
+    @staticmethod
+    def calc_area(x, y):
+        return abs(x[0] - y[0]) * abs(x[1] - y[1])
+    @staticmethod
+    def is_rect_illegal(x, y):
+        return abs(x[0] - y[0]) > 10 and abs(x[1] - y[1]) > 10
 
     def __init__(self, im, win_name='draw rect') -> None:
         self.state = DrawConsole.DrawState.END
@@ -118,6 +130,8 @@ class DrawConsole(object):
         self.im_ori = im
         self.im_tmp = im.copy()
         self.im_vis = im.copy()
+        self.im_mask = None
+        self.im_alpha = None
         self.start_pos = (0, 0)
         self.stop_pos = (0, 0)
         self.label = 0
@@ -137,7 +151,7 @@ class DrawConsole(object):
             self.state = DrawConsole.DrawState.END
             pos = DrawConsole.restrict(pos, DrawConsole.shape_to_size(self.im_ori.shape))
             self.stop_pos = pos
-            if np.any(VEC(self.stop_pos) - VEC(self.start_pos) == 0):
+            if not DrawConsole.is_rect_illegal(self.start_pos, self.stop_pos):
                 #print('no rect is drawn!')
                 self.bbox = (0, 0, 0, 0)
                 self.im_vis = self.im_tmp.copy()
@@ -159,6 +173,23 @@ class DrawConsole(object):
             pos = DrawConsole.restrict(pos, DrawConsole.shape_to_size(self.im_ori.shape))
             self.im_vis = self.im_tmp.copy()
             cv2.rectangle(self.im_vis, self.start_pos, pos, LABEL_COLORS[self.label], 2)
+            cv2.imshow(self.win_name, self.im_vis)
+        elif self.state == DrawConsole.DrawState.END:
+            self.im_vis = self.im_tmp.copy()
+            self.im_alpha = DrawConsole.make_alike(self.im_vis)
+            self._im_w = DrawConsole.make_alike(self.im_vis)
+            for i in range(len(self.targets)):
+                bb = self.targets[i].bbox
+                if DrawConsole.point_in_bbox(pos, bb):
+                    rect = (bb[0], bb[1], bb[0] + bb[2], bb[1] + bb[3])
+                    _color = LABEL_COLORS[self.targets[i].label]
+                    cv2.rectangle(self.im_alpha, rect[:2], rect[2:], _color, -1)
+                    cv2.rectangle(self._im_w, rect[:2], rect[2:], (255,255,255), -1)
+            # merge alpha layer and rgb layer
+            self.im_mask = np.float32(self._im_w) * (0.5/255.0)
+            self._alpha = np.float32(self.im_alpha) * self.im_mask
+            self._vis = np.float32(self.im_vis) * (1.0 - self.im_mask)
+            self.im_vis = np.uint8(self._alpha + self._vis)
             cv2.imshow(self.win_name, self.im_vis)
 
     def cancel(self, pos):
@@ -227,7 +258,7 @@ def OnDrawRect(event, x, y, flags, params:DrawConsole):
             params.cancel((x,y))
     if event == cv2.EVENT_MOUSEMOVE:
         #print('mouse moved: %d %d' % (x, y))
-        if params.state == DrawConsole.DrawState.BEGIN:
+        if params.state in [DrawConsole.DrawState.BEGIN, DrawConsole.DrawState.END]:
             params.update((x, y))
     if event == cv2.EVENT_RBUTTONDOWN:
         if params.state == DrawConsole.DrawState.END or params.state == DrawConsole.DrawState.MENU:
@@ -351,8 +382,8 @@ if __name__ == '__main__':
     images = GetImages('data/Baidu_YaLiBiao')
     detector = YoloDetector('models/yolov5n-dashboard.onnx')
 
-    counter = 3337
-    begin_id = 711
+    counter = 3338
+    begin_id = 712
     for i, fn, im in images:
         if i < begin_id:
             continue
@@ -360,5 +391,5 @@ if __name__ == '__main__':
         rects, labels = GetBoundingRectsAndLabels(im, default_label=0, backend=detector)
         #print(im.shape[::-1])
         # save the frame with bounding box
-        #if SaveImageAndLabels(counter, im, rects, labels):
-        # counter += 1
+        if SaveImageAndLabels(counter, im, rects, labels):
+            counter += 1
