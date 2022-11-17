@@ -107,6 +107,10 @@ class DrawConsole(object):
         for i in range(len(targets)):
             DrawConsole.draw_bbox(im, targets[i].bbox, targets[i].label)
             DrawConsole.add_label(im, targets[i].bbox, targets[i].label)
+    @staticmethod
+    def point_in_bbox(pos:tuple, bbox:tuple):
+        rect = (bbox[0], bbox[1], bbox[0] + bbox[2], bbox[1] + bbox[3])
+        return DrawConsole.point_in_rect(pos, rect)
 
     def __init__(self, im, win_name='draw rect') -> None:
         self.state = DrawConsole.DrawState.END
@@ -161,10 +165,12 @@ class DrawConsole(object):
         if self.state == DrawConsole.DrawState.END:
             if len(self.targets) > 0:
                 # find the bounding boxes that has been clicked
+                new_targets = []
                 for i in range(len(self.targets)):
                     # if pos is in rect
-
-                self.targets.pop()
+                    if not DrawConsole.point_in_bbox(pos, self.targets[i].bbox):
+                        new_targets.append(DrawConsole.Target(self.targets[i].bbox, self.targets[i].label))
+                self.targets = new_targets
                 self.im_tmp = self.im_ori.copy()
                 DrawConsole.show_targets(self.im_tmp, self.targets)
                 self.im_vis = self.im_tmp.copy()
@@ -352,8 +358,6 @@ if __name__ == '__main__':
             continue
         print("GLOBAL(%d)-LOCAL(%d): %s" % (counter, i, fn))
         rects, labels = GetBoundingRectsAndLabels(im, default_label=0, backend=detector)
-        #print(rects)
-        #print(labels)
         #print(im.shape[::-1])
         # save the frame with bounding box
         #if SaveImageAndLabels(counter, im, rects, labels):

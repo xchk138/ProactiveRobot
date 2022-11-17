@@ -3,7 +3,7 @@
 import os
 
 
-def GetBingImages(images_path, prefix):
+def GetBaiduImages(images_path, prefix):
        # rename all png files to their original postfix
        files = os.listdir(images_path)
        print(len(files))
@@ -19,4 +19,4 @@ def GetBingImages(images_path, prefix):
 
 
 if __name__ == '__main__':
-       GetBingImages('data/Baidu_YaLiBiao/', 'u=')
+       GetBaiduImages('data/Baidu_YaLiBiao/', 'u=')
