@@ -387,8 +387,8 @@ if __name__ == '__main__':
     images = GetImages('data/Baidu_YaLiBiao')
     detector = YoloDetector('models/yolov5n-dashboard.onnx')
 
-    counter = 3348
-    begin_id = 722
+    counter = 3497
+    begin_id = 893
     for i, fn, im in images:
         if i < begin_id:
             continue
