@@ -4,6 +4,8 @@ import numpy as np
 import cv2
 import os
 from enum import Enum
+import platform
+
 from inference import YoloDetector
 
 #np.random.seed(168)
@@ -277,9 +279,12 @@ def GetBoundingRectsAndLabels(im, default_label=0, backend=None):
         for i in range(len(bboxes)):
             info.targets.append(DrawConsole.Target(bboxes[i], labels[i]))
             DrawConsole.show_targets(info.im_tmp, info.targets)
-
-    cv2.namedWindow(info.win_name, cv2.WINDOW_GUI_NORMAL)
-    cv2.setWindowProperty(info.win_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+    if platform.system() == 'Windows':
+        cv2.namedWindow(info.win_name)
+        #cv2.setWindowProperty(info.win_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+    else:
+        cv2.namedWindow(info.win_name, cv2.WINDOW_GUI_NORMAL)
+        cv2.setWindowProperty(info.win_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
     cv2.imshow(info.win_name, info.im_tmp)
     cv2.setMouseCallback(info.win_name, OnDrawRect, info)
     code = -1
@@ -382,8 +387,8 @@ if __name__ == '__main__':
     images = GetImages('data/Baidu_YaLiBiao')
     detector = YoloDetector('models/yolov5n-dashboard.onnx')
 
-    counter = 3338
-    begin_id = 712
+    counter = 3348
+    begin_id = 722
     for i, fn, im in images:
         if i < begin_id:
             continue
