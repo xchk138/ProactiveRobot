@@ -387,8 +387,8 @@ if __name__ == '__main__':
     images = GetImages('data/Baidu_YaLiBiao')
     detector = YoloDetector('models/yolov5n-dashboard.onnx')
 
-    counter = 3497
-    begin_id = 893
+    counter = 4202
+    begin_id = 1709
     for i, fn, im in images:
         if i < begin_id:
             continue
@@ -397,4 +397,4 @@ if __name__ == '__main__':
         #print(im.shape[::-1])
         # save the frame with bounding box
         if SaveImageAndLabels(counter, im, rects, labels):
-            counter += 1
+           counter += 1
