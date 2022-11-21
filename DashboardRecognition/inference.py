@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 
 class YoloDetector(object):
-    def __init__(self, onnx_path, infer_size=224, num_class=2, score_thres=0.8, conf_thres=0.8) -> None:
+    def __init__(self, onnx_path, infer_size=224, num_class=2, score_thres=0.1, conf_thres=0.1) -> None:
         self.net = cv2.dnn.readNetFromONNX(onnx_path)
         self.net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
         self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
