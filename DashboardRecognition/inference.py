@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 
 class YoloDetector(object):
-    def __init__(self, onnx_path, infer_size=224, num_class=2, score_thres=0.1, conf_thres=0.1) -> None:
+    def __init__(self, onnx_path, infer_size=224, num_class=2, score_thres=0.6, conf_thres=0.6) -> None:
         self.net = cv2.dnn.readNetFromONNX(onnx_path)
         self.net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
         self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
@@ -124,3 +124,44 @@ class YoloDetector(object):
         y = self.net.forward('output')
         bboxes, labels = self.postprocess(y)
         return bboxes, labels
+
+    class ImagePatch(object):
+        def __init__(self, im:np.ndarray, scale:float, offset:tuple) -> None:
+            self.im = im
+            self.scale = scale
+            self.offset = offset
+        @property
+        def get_range(self):
+            h, w = self.im.shape[:2]
+            h_full = int(h/self.scale)
+            w_full = int(w/self.scale)
+            x_full = int(self.offset[0]/self.scale)
+            y_full = int(self.offset[1]/self.scale)
+            return (x_full, y_full, w_full, h_full)
+        def map_rect(self, rect):
+            x,y,w,h = self.get_range
+            print(x,y,w,h)
+            rx = int(rect[0]/self.scale)
+            ry = int(rect[1]/self.scale)
+            rw = int(rect[2]/self.scale)
+            rh = int(rect[3]/self.scale)
+            rx += x
+            ry += y
+            return (rx, ry, rw, rh)
+
+    @staticmethod
+    def grid_splits(im:np.ndarray, min_object_size=30, patch_size=224, max_depth=3):
+        h, w = im.shape[:2]
+        scale = patch_size*1.0/min(w, h) # the basic scale
+        ratio = 2
+        while (min(w, h)+1) * scale >= patch_size:
+            print('scale: %f' % scale)
+            scale *= ratio
+            # do splits
+
+    def infer_detail(self, im:np.ndarray):
+        bboxes = []
+        labels = []
+        x_batch = self.splits(im)
+        for x in x_batch:
+            self.net.setInput(x)

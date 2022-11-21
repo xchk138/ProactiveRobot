@@ -19,4 +19,4 @@ def GetBaiduImages(images_path, prefix):
 
 
 if __name__ == '__main__':
-       GetBaiduImages('data/Baidu_YaLiBiao/', 'u=')
+       GetBaiduImages('data/dianchang/', 'u=')

@@ -268,11 +268,20 @@ def OnDrawRect(event, x, y, flags, params:DrawConsole):
 
 
 def GetBoundingRectsAndLabels(im, default_label=0, backend=None):
-    h, w, _ = im.shape
-    im = cv2.cvtColor(im, cv2.COLOR_BGR2YUV_I420)
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
-    im[:h,:] = clahe.apply(im[:h,:])
-    im = cv2.cvtColor(im, cv2.COLOR_YUV2BGR_I420)
+    if len(im.shape)==3:
+        h, w, c = im.shape
+        if c==4:
+            im = im[:,:,:3]
+        # make both width and height even numbers
+        new_w, new_h = w//2 *2, h//2 *2
+        if new_w < w or new_h < h:
+            im = im[:new_h, :new_w]
+        im = cv2.cvtColor(im, cv2.COLOR_BGR2YUV_I420)
+        im[:h,:] = clahe.apply(im[:h,:])
+        im = cv2.cvtColor(im, cv2.COLOR_YUV2BGR_I420)
+    else:
+        im = clahe.apply(im)
     vis = im.copy()
     info = DrawConsole(vis)
     info.win_name = 'select color to draw rects'
@@ -389,7 +398,7 @@ if __name__ == '__main__':
             AppendSampleToList(file_val_list, images_dir, val_dir, frame_id)
         return True
 
-    images = GetImages('data/samples/sf6')
+    images = GetImages('data/test-web')
     detector = YoloDetector('models/yolov5n-dashboard.onnx')
 
     counter = 0
