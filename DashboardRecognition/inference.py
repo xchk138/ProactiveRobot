@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 
 class YoloDetector(object):
-    def __init__(self, onnx_path, infer_size=224, num_class=2, score_thres=0.6, conf_thres=0.6) -> None:
+    def __init__(self, onnx_path, infer_size=224, num_class=2, score_thres=0.8, conf_thres=0.8) -> None:
         self.net = cv2.dnn.readNetFromONNX(onnx_path)
         self.net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
         self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
@@ -140,28 +140,124 @@ class YoloDetector(object):
             return (x_full, y_full, w_full, h_full)
         def map_rect(self, rect):
             x,y,w,h = self.get_range
-            print(x,y,w,h)
+            #print(x,y,w,h)
             rx = int(rect[0]/self.scale)
             ry = int(rect[1]/self.scale)
-            rw = int(rect[2]/self.scale)
-            rh = int(rect[3]/self.scale)
+            rw = min(w-1-rx, int(rect[2]/self.scale))
+            rh = min(h-1-ry, int(rect[3]/self.scale))
             rx += x
             ry += y
             return (rx, ry, rw, rh)
+        def __str__(self) -> str:
+            return 'patch {\n\tshape: (%d, %d)\n\tscale: %.6f\n\toffset: (%d, %d)\n\t}' % (self.im.shape[1], self.im.shape[0], self.scale, self.offset[0], self.offset[1])
 
-    @staticmethod
-    def grid_splits(im:np.ndarray, min_object_size=30, patch_size=224, max_depth=3):
+    def split_image(self, im:np.ndarray, min_object_size=120, max_depth=3):
+        patch_size = self.infer_size
+        overlap = min_object_size
         h, w = im.shape[:2]
         scale = patch_size*1.0/min(w, h) # the basic scale
         ratio = 2
-        while (min(w, h)+1) * scale >= patch_size:
-            print('scale: %f' % scale)
-            scale *= ratio
+        patches = []
+        depth = 1
+        while scale <= 1 and depth <= max_depth:
+            print('depth: %d, scale: %f' % (depth, scale))
             # do splits
+            _w = int(w * scale)
+            _h = int(h * scale)
+            _im = cv2.resize(im, (_w, _h))
+            x_split = (_w - overlap)//(patch_size-overlap)
+            y_split = (_h - overlap)//(patch_size-overlap)
+            for _iy in range(y_split):
+                patch_y = int(_iy*(patch_size-overlap))
+                if _iy == y_split-1:
+                    patch_h = int(_h - 1 - patch_y)
+                else:
+                    patch_h = patch_size
+                for _ix in range(x_split):
+                    patch_x = int(_ix*(patch_size-overlap))
+                    if _ix == x_split-1:
+                        patch_w = int(_w - 1 - patch_x)
+                    else:
+                        patch_w = patch_size
+                patches.append(YoloDetector.ImagePatch(_im[patch_y:patch_y+patch_h, patch_x:patch_x+patch_w], scale, (patch_x, patch_y)))
+            # update scale and depth
+            scale *= ratio
+            depth += 1
+        return patches
+
+    @staticmethod
+    def inter(bb1, bb2):
+        bx1 = max(bb1[0], bb2[0])
+        by1 = max(bb1[1], bb2[1])
+        bx2 = min(bb1[0] + bb1[2], bb2[0] + bb2[2])
+        by2 = min(bb1[1] + bb1[3], bb2[1] + bb2[3])
+        if bx2 > bx1 and by2 > by1:
+            return (bx1, by1, bx2-bx1, by2-by1)
+        else:
+            return None
+    @staticmethod
+    def union(bb1, bb2):
+        bx1 = min(bb1[0], bb2[0])
+        by1 = min(bb1[1], bb2[1])
+        bx2 = max(bb1[0] + bb1[2], bb2[0] + bb2[2])
+        by2 = max(bb1[1] + bb1[3], bb2[1] + bb2[3])
+        return (bx1, by1, bx2-bx1, by2-by1)
+    @staticmethod
+    def area(bb):
+        return bb[2]*bb[3]
+    @staticmethod
+    def smaller(bb1, bb2):
+        if YoloDetector.area(bb1) > YoloDetector.area(bb2):
+            return bb2
+        else:
+            return bb1
+    @staticmethod
+    def bigger(bb1, bb2):
+        if YoloDetector.area(bb1) > YoloDetector.area(bb2):
+            return bb1
+        else:
+            return bb2
+    @staticmethod
+    def iou(bb1, bb2):
+        _overlap = YoloDetector.inter(bb1, bb2)
+        if _overlap is None:
+            return 0
+        else:
+            return YoloDetector.area(_overlap) *1.0 / YoloDetector.area(YoloDetector.smaller(bb1, bb2))
+
+    @staticmethod
+    def merge_bboxes(bboxes, labels, max_iou=0.6):
+        is_removed = [False]*len(bboxes)
+        for i in range(len(bboxes)):
+            if is_removed[i]:
+                continue
+            for j in range(i+1, len(bboxes)):
+                if is_removed[j]:
+                    continue
+                if labels[i] != labels[j]:
+                    continue
+                if YoloDetector.iou(bboxes[i], bboxes[j]) >= max_iou:
+                    # mark the small one as removed
+                    if YoloDetector.area(bboxes[i]) > YoloDetector.area(bboxes[j]):
+                        is_removed[j] = True
+                    else:
+                        is_removed[i] = True
+        bbs = []
+        lbs = []
+        for i in range(len(is_removed)):
+            if not is_removed[i]:
+                bbs.append(bboxes[i])
+                lbs.append(labels[i])
+        return bbs, lbs
+
 
     def infer_detail(self, im:np.ndarray):
         bboxes = []
         labels = []
-        x_batch = self.splits(im)
+        x_batch = self.split_image(im)
+        #[print(x_batch[i]) for i in range(len(x_batch))]
         for x in x_batch:
-            self.net.setInput(x)
+            _bboxes, _labels = self.infer(x.im)
+            bboxes += [x.map_rect(bb) for bb in _bboxes]
+            labels += _labels
+        return YoloDetector.merge_bboxes(bboxes, labels)
