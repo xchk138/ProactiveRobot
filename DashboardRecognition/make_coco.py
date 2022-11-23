@@ -399,7 +399,7 @@ if __name__ == '__main__':
             AppendSampleToList(file_val_list, images_dir, val_dir, frame_id)
         return True
 
-    images = GetImages('data/test-web')
+    images = GetImages('data/samples/sf6')
     detector = YoloDetector('models/yolov5n-dashboard.onnx')
 
     counter = 0
