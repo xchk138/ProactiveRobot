@@ -250,7 +250,7 @@ def convert_ath_json(json_dir):  # dir contains json annotations and images
     print(f'Done. Output saved to {Path(dir).absolute()}')
 
 
-def convert_coco_json(json_dir='../coco/annotations/', use_segments=False, cls91to80=False):
+def convert_coco_json(json_dir='../coco/annotations/', use_bbox=False, use_keypoints=False, use_segments=False, cls91to80=False):
     save_dir = make_dirs()  # output directory
     coco80 = coco91_to_coco80_class()
 
@@ -275,6 +275,7 @@ def convert_coco_json(json_dir='../coco/annotations/', use_segments=False, cls91
 
             bboxes = []
             segments = []
+            keypoints = []
             for ann in anns:
                 if ann['iscrowd']:
                     continue
@@ -290,6 +291,17 @@ def convert_coco_json(json_dir='../coco/annotations/', use_segments=False, cls91
                 box = [cls] + box.tolist()
                 if box not in bboxes:
                     bboxes.append(box)
+                # keypoints
+                if use_keypoints:
+                    NUM_KEYPOINTS = 17
+                    kps = np.array(ann['keypoints']).reshape([NUM_KEYPOINTS, 3]).astype(np.float32)
+                    kps = (kps / np.array([w, h, 1]).astype(np.float32)).reshape(-1).tolist()
+                    if use_bbox:
+                        kps = box + kps 
+                    else:
+                        kps = [cls] + kps
+                    if kps not in keypoints:
+                        keypoints.append(kps)
                 # Segments
                 if use_segments:
                     if len(ann['segmentation']) > 1:
@@ -298,14 +310,19 @@ def convert_coco_json(json_dir='../coco/annotations/', use_segments=False, cls91
                     else:
                         s = [j for i in ann['segmentation'] for j in i]  # all segments concatenated
                         s = (np.array(s).reshape(-1, 2) / np.array([w, h])).reshape(-1).tolist()
-                    s = [cls] + s
+                    if use_keypoints:
+                         s = kps + s
+                    elif use_bbox:
+                        s = box + s
+                    else:
+                        s = [cls] + s
                     if s not in segments:
                         segments.append(s)
 
             # Write
             with open((fn / f).with_suffix('.txt'), 'a') as file:
                 for i in range(len(bboxes)):
-                    line = *(segments[i] if use_segments else bboxes[i]),  # cls, box or segments
+                    line = *(segments[i] if use_segments else keypoints[i] if use_keypoints else bboxes[i]),  
                     file.write(('%g ' * len(line)).rstrip() % line + '\n')
 
 
@@ -385,7 +402,9 @@ if __name__ == '__main__':
 
     if source == 'COCO':
         convert_coco_json('../data/coco2017/annotations',  # directory with *.json
-                          use_segments=True,
+                          use_bbox=True,
+                          use_keypoints=True,
+                          use_segments=False,
                           cls91to80=True)
 
     elif source == 'infolks':  # Infolks https://infolks.info/
