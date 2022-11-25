@@ -10,7 +10,7 @@ from inference import YoloDetector
 
 #np.random.seed(168)
 
-LABEL_NAMES = ['YuanBiao', 'YeJing']
+LABEL_NAMES = ['Dashboard', 'Display', 'Keypoint']
 
 
 def hue2rgb(p, q, t):
@@ -41,8 +41,8 @@ def GenerateColorMap(size, chrom_thres=0.8, illum_range=(0.2, 0.5)):
     lig = np.random.rand(size) * (illum_range[1]-illum_range[0]) + illum_range[0]
     return [HSL2RGB(hue[i], sat[i], lig[i]) for i in range(size)]
 
-LABEL_COLORS = GenerateColorMap(len(LABEL_NAMES), 0.8)
-#print(LABEL_COLORS)
+#LABEL_COLORS = GenerateColorMap(len(LABEL_NAMES), 0.8)
+LABEL_COLORS = [(180,30,0), (0, 180, 30), (30, 0, 180)]
 
 
 def VEC(x):
@@ -60,9 +60,10 @@ class DrawConsole(object):
         MENU = 3
     
     class Target(object):
-        def __init__(self, bbox, label) -> None:
+        def __init__(self, bbox=(0,0,0,0), label=0, kpts=[]) -> None:
             self.bbox = bbox
             self.label = label
+            self.kpts = kpts
 
     @staticmethod
     def restrict(pos, size):
@@ -75,6 +76,12 @@ class DrawConsole(object):
     @staticmethod
     def draw_bbox(im, bbox:tuple, label:int) -> None:
         cv2.rectangle(im, tuple(bbox[0:2]), (bbox[0] + bbox[2], bbox[1] + bbox[3]), LABEL_COLORS[label], 2)
+    @staticmethod
+    def draw_keypoints(im, kpts:list) -> None:
+        for i in range(len(kpts)):
+            cv2.circle(im, kpts[i], 8, LABEL_COLORS[-1], -1)
+        if len(kpts) >= 2:
+            cv2.line(im, kpts[0], kpts[1], LABEL_COLORS[-1], 3)
     @staticmethod
     def add_label(im:np.ndarray, bbox:tuple, label:int)->None:
         font_size = 0.5
@@ -99,15 +106,17 @@ class DrawConsole(object):
     def point_in_rect(pos:tuple, rect:tuple):
         return (pos[0] > rect[0] and pos[0] < rect[2] and pos[1] > rect[1] and pos[1] < rect[3])
     @staticmethod
-    def ShowDetection(im: np.ndarray, bboxes:list, labels:list):
+    def ShowDetection(im: np.ndarray, bboxes:list, labels:list, kpts=[]):
         assert len(bboxes) == len(labels)
         for i in range(len(bboxes)):
             DrawConsole.draw_bbox(im, bboxes[i], labels[i])
+            DrawConsole.draw_keypoints(im, kpts[i])
             DrawConsole.add_label(im, bboxes[i], labels[i])
     @staticmethod
     def show_targets(im: np.ndarray, targets:list):
         for i in range(len(targets)):
             DrawConsole.draw_bbox(im, targets[i].bbox, targets[i].label)
+            DrawConsole.draw_keypoints(im, targets[i].kpts)
             DrawConsole.add_label(im, targets[i].bbox, targets[i].label)
     @staticmethod
     def point_in_bbox(pos:tuple, bbox:tuple):
@@ -153,28 +162,60 @@ class DrawConsole(object):
             self.state = DrawConsole.DrawState.END
             pos = DrawConsole.restrict(pos, DrawConsole.shape_to_size(self.im_ori.shape))
             self.stop_pos = pos
-            if not DrawConsole.is_rect_illegal(self.start_pos, self.stop_pos):
-                #print('no rect is drawn!')
-                self.bbox = (0, 0, 0, 0)
-                self.im_vis = self.im_tmp.copy()
-                cv2.imshow(self.win_name, self.im_vis)
-            else:
-                self.bbox = (min(self.start_pos[0], self.stop_pos[0]),
-                    min(self.start_pos[1], self.stop_pos[1]), 
-                    abs(self.start_pos[0] - self.stop_pos[0]), 
-                    abs(self.start_pos[1] - self.stop_pos[1]))
-                # draw labels on the top left of the rect
-                DrawConsole.add_label(self.im_vis, self.bbox, self.label)
-                cv2.imshow(self.win_name, self.im_vis)
-                # add this target to list
-                self.targets.append(DrawConsole.Target(self.bbox, self.label))
-                self.im_tmp = self.im_vis.copy()
-
+            if LABEL_NAMES[self.label] in ['Dashboard', 'Display']:
+                # add bbox to targets
+                if not DrawConsole.is_rect_illegal(self.start_pos, self.stop_pos):
+                    #print('no rect is drawn!')
+                    self.bbox = (0, 0, 0, 0)
+                    self.im_vis = self.im_tmp.copy()
+                    cv2.imshow(self.win_name, self.im_vis)
+                else:
+                    self.bbox = (min(self.start_pos[0], self.stop_pos[0]),
+                        min(self.start_pos[1], self.stop_pos[1]), 
+                        abs(self.start_pos[0] - self.stop_pos[0]), 
+                        abs(self.start_pos[1] - self.stop_pos[1]))
+                    # draw labels on the top left of the rect
+                    DrawConsole.add_label(self.im_vis, self.bbox, self.label)
+                    cv2.imshow(self.win_name, self.im_vis)
+                    # add this target to list
+                    self.targets.append(DrawConsole.Target(self.bbox, self.label))
+                    self.im_tmp = self.im_vis.copy()
+            elif LABEL_NAMES[self.label] in ['Keypoint']:
+                # add keypoints to nearest bbox
+                if max(abs(self.stop_pos[0] - self.start_pos[0]), abs(self.stop_pos[1] - self.start_pos[1])) < 30:
+                    #print('no keypoint is drawn')
+                    self.im_vis = self.im_tmp.copy()
+                    cv2.imshow(self.win_name, self.im_vis)
+                else:
+                    #print('keypoint: (%d,%d)-(%d,%d)' % (self.start_pos[0], self.start_pos[1], self.stop_pos[0], self.stop_pos[1]))
+                    # find if all these points are inside a box
+                    kpts_valid = False
+                    kpts = [self.start_pos, self.stop_pos]
+                    for i in range(len(self.targets)):
+                        is_inside = [DrawConsole.point_in_bbox(kpts[j], self.targets[i].bbox) for j in range(len(kpts))]
+                        if np.all(is_inside):
+                            # bind these key points to this bounding box
+                            self.targets[i].kpts = kpts
+                            kpts_valid = True
+                            break
+                    if not kpts_valid:
+                        #print('keypoints are not all inside a boundg box!')
+                        self.im_vis = self.im_tmp.copy()
+                        cv2.imshow(self.win_name, self.im_vis)
+                    else:
+                        # redraw all rects and lines
+                        self.im_vis = self.im_ori.copy()
+                        DrawConsole.show_targets(self.im_vis, self.targets)
+                        self.im_tmp = self.im_vis.copy()
+                
     def update(self, pos):
         if self.state == DrawConsole.DrawState.BEGIN:
             pos = DrawConsole.restrict(pos, DrawConsole.shape_to_size(self.im_ori.shape))
             self.im_vis = self.im_tmp.copy()
-            cv2.rectangle(self.im_vis, self.start_pos, pos, LABEL_COLORS[self.label], 2)
+            if LABEL_NAMES[self.label] in ['Dashboard','Display']:
+                cv2.rectangle(self.im_vis, self.start_pos, pos, LABEL_COLORS[self.label], 2)
+            elif LABEL_NAMES[self.label] in ['Keypoint']:
+                cv2.line(self.im_vis, self.start_pos, pos, LABEL_COLORS[self.label], 3)
             cv2.imshow(self.win_name, self.im_vis)
         elif self.state == DrawConsole.DrawState.END:
             self.im_vis = self.im_tmp.copy()
