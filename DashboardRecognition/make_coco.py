@@ -10,6 +10,7 @@ from inference import YoloDetector
 
 #np.random.seed(168)
 
+NUM_KEYPOINTS = 2
 LABEL_NAMES = ['Dashboard', 'Display', 'Keypoint']
 
 
@@ -182,7 +183,7 @@ class DrawConsole(object):
                     self.im_tmp = self.im_vis.copy()
             elif LABEL_NAMES[self.label] in ['Keypoint']:
                 # add keypoints to nearest bbox
-                if max(abs(self.stop_pos[0] - self.start_pos[0]), abs(self.stop_pos[1] - self.start_pos[1])) < 30:
+                if max(abs(self.stop_pos[0] - self.start_pos[0]), abs(self.stop_pos[1] - self.start_pos[1])) < 10:
                     #print('no keypoint is drawn')
                     self.im_vis = self.im_tmp.copy()
                     cv2.imshow(self.win_name, self.im_vis)
@@ -330,8 +331,8 @@ def GetBoundingRectsAndLabels(im, default_label=0, backend=None):
 
     # use pretrained model to generate coarse detection result
     if backend is not None:
-        bboxes, labels = backend.infer_detail(im)
-        #bboxes, labels = backend.infer(im)
+        #bboxes, labels = backend.infer_detail(im)
+        bboxes, labels = backend.infer(im)
         for i in range(len(bboxes)):
             info.targets.append(DrawConsole.Target(bboxes[i], labels[i]))
             DrawConsole.show_targets(info.im_tmp, info.targets)
@@ -377,7 +378,7 @@ def SaveImage(path_images, frame_id, im):
 
 # works on single tracking
 # coco format: [class_id] [x] [y] [w] [h]
-def SaveLabels(path_labels, frame_id, bboxes, labels, w, h):
+def SaveLabels(path_labels, frame_id, bboxes, labels, kpts, w, h):
     assert len(bboxes) == len(labels)
     label_file = open('/'.join([path_labels, '%08d.txt' % frame_id]), 'wt')
     for i in range(len(bboxes)):
@@ -395,7 +396,17 @@ def SaveLabels(path_labels, frame_id, bboxes, labels, w, h):
         bh = min(1.0, max(0.0, bh))
         bx += bw/2
         by += bh/2
-        label_file.write('%d %.7f %.7f %.7f %.7f\n' % (cid, bx, by, bw, bh))
+        # normalize keypoint coordinates
+        _kps = np.zeros([NUM_KEYPOINTS, 3], np.float32)
+        if len(kpts[i]) == NUM_KEYPOINTS:
+            for j in range(NUM_KEYPOINTS):
+                _kps[j,0] = kpts[i][j][0] * 1.0 / w
+                _kps[j,1] = kpts[i][j][1] * 1.0 / h
+                _kps[j,2] = 1.0
+        _kps = _kps.reshape([NUM_KEYPOINTS*3])
+        _kps = ['%.7f'%_e for _e in _kps.tolist()]
+        _kps_str = ' '.join(_kps)
+        label_file.write('%d %.7f %.7f %.7f %.7f %s\n' % (cid, bx, by, bw, bh, _kps_str))
     label_file.close()
 
 
@@ -406,7 +417,7 @@ def AppendSampleToList(file_list, images_dir, train_dir, frame_id):
 
 
 if __name__ == '__main__':
-    dataset_path = 'data/dashboard-coco'
+    dataset_path = 'data/dashboard-pointer'
     images_dir = 'images'
     labels_dir = 'labels'
     train_dir = 'train'
@@ -428,34 +439,28 @@ if __name__ == '__main__':
     file_train_list = open(path_train_list, 'at')
     file_val_list = open(path_val_list, 'at')
 
-    def SaveImageAndLabels(frame_id:int, im:np.ndarray, rects:list, labels:list) -> bool:
+    def SaveImageAndLabels(frame_id:int, im:np.ndarray, rects:list, labels:list, kpts:list) -> bool:
         if not len(rects):
             return False
         if np.random.rand() < train_ratio:
             SaveImage(path_images_train, frame_id, im)
-            SaveLabels(path_labels_train, frame_id, rects, labels, im.shape[1], im.shape[0])
+            SaveLabels(path_labels_train, frame_id, rects, labels, kpts, im.shape[1], im.shape[0])
             AppendSampleToList(file_train_list, images_dir, train_dir, frame_id)
         else:
             SaveImage(path_images_val, frame_id, im)
-            SaveLabels(path_labels_val, frame_id, rects, labels, im.shape[1], im.shape[0])
+            SaveLabels(path_labels_val, frame_id, rects, labels, kpts, im.shape[1], im.shape[0])
             AppendSampleToList(file_val_list, images_dir, val_dir, frame_id)
         return True
 
-    images = GetImages('data/samples/sf62')
+    images = GetImages('data/Baidu_BiLeiQi')
     detector = YoloDetector('models/yolov5n-dashboard.onnx')
 
-    counter = 0
-    begin_id = 0
+    counter = 13
+    begin_id = 13
     for i, fn, im in images:
         if i < begin_id:
             continue
         print("GLOBAL(%d)-LOCAL(%d): %s" % (counter, i, fn))
         rects, labels, kpts = GetBoundingRectsAndLabels(im, default_label=2, backend=detector)
-        print(rects)
-        print(labels)
-        print(kpts)
-        print('--------------------------')
-        #print(im.shape[::-1])
-        # save the frame with bounding box
-        #if SaveImageAndLabels(counter, im, rects, labels):
-        #   counter += 1
+        if SaveImageAndLabels(counter, im, rects, labels, kpts):
+          counter += 1
