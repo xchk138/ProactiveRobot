@@ -42,7 +42,7 @@ def GenerateColorMap(size, chrom_thres=0.8, illum_range=(0.2, 0.5)):
     return [HSL2RGB(hue[i], sat[i], lig[i]) for i in range(size)]
 
 #LABEL_COLORS = GenerateColorMap(len(LABEL_NAMES), 0.8)
-LABEL_COLORS = [(180,30,0), (0, 180, 30), (30, 0, 180)]
+LABEL_COLORS = [(200,30,0), (0, 200, 30), (30, 0, 200)]
 
 
 def VEC(x):
@@ -79,7 +79,7 @@ class DrawConsole(object):
     @staticmethod
     def draw_keypoints(im, kpts:list) -> None:
         for i in range(len(kpts)):
-            cv2.circle(im, kpts[i], 8, LABEL_COLORS[-1], -1)
+            cv2.circle(im, kpts[i], 6, LABEL_COLORS[-1], -1)
         if len(kpts) >= 2:
             cv2.line(im, kpts[0], kpts[1], LABEL_COLORS[-1], 3)
     @staticmethod
@@ -243,7 +243,7 @@ class DrawConsole(object):
                 for i in range(len(self.targets)):
                     # if pos is in rect
                     if not DrawConsole.point_in_bbox(pos, self.targets[i].bbox):
-                        new_targets.append(DrawConsole.Target(self.targets[i].bbox, self.targets[i].label))
+                        new_targets.append(DrawConsole.Target(self.targets[i].bbox, self.targets[i].label, self.targets[i].kpts))
                 self.targets = new_targets
                 self.im_tmp = self.im_ori.copy()
                 DrawConsole.show_targets(self.im_tmp, self.targets)
@@ -350,7 +350,8 @@ def GetBoundingRectsAndLabels(im, default_label=0, backend=None):
     if code == ord('c') or code == ord('C'):
         exit(0)
     return ([info.targets[i].bbox for i in range(len(info.targets))], 
-    [info.targets[i].label for i in range(len(info.targets))])
+    [info.targets[i].label for i in range(len(info.targets))],
+    [info.targets[i].kpts for i in range(len(info.targets))])
 
 
 def GetImages(image_path):
@@ -440,7 +441,7 @@ if __name__ == '__main__':
             AppendSampleToList(file_val_list, images_dir, val_dir, frame_id)
         return True
 
-    images = GetImages('data/samples/sf6')
+    images = GetImages('data/samples/sf62')
     detector = YoloDetector('models/yolov5n-dashboard.onnx')
 
     counter = 0
@@ -449,7 +450,11 @@ if __name__ == '__main__':
         if i < begin_id:
             continue
         print("GLOBAL(%d)-LOCAL(%d): %s" % (counter, i, fn))
-        rects, labels = GetBoundingRectsAndLabels(im, default_label=0, backend=detector)
+        rects, labels, kpts = GetBoundingRectsAndLabels(im, default_label=2, backend=detector)
+        print(rects)
+        print(labels)
+        print(kpts)
+        print('--------------------------')
         #print(im.shape[::-1])
         # save the frame with bounding box
         #if SaveImageAndLabels(counter, im, rects, labels):

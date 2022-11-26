@@ -160,7 +160,7 @@ class YoloDetector(object):
         patches = []
         depth = 1
         while scale <= 1 and depth <= max_depth:
-            print('depth: %d, scale: %f' % (depth, scale))
+            #print('depth: %d, scale: %f' % (depth, scale))
             # do splits
             _w = int(w * scale)
             _h = int(h * scale)
