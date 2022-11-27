@@ -208,6 +208,7 @@ class DrawConsole(object):
                         self.im_vis = self.im_ori.copy()
                         DrawConsole.show_targets(self.im_vis, self.targets)
                         self.im_tmp = self.im_vis.copy()
+                        cv2.imshow(self.win_name, self.im_vis)
                 
     def update(self, pos):
         if self.state == DrawConsole.DrawState.BEGIN:
@@ -452,11 +453,11 @@ if __name__ == '__main__':
             AppendSampleToList(file_val_list, images_dir, val_dir, frame_id)
         return True
 
-    images = GetImages('data/Baidu_BiLeiQi')
+    images = GetImages('data/Baidu_YeJing')
     detector = YoloDetector('models/yolov5n-dashboard.onnx')
 
-    counter = 13
-    begin_id = 13
+    counter = 396
+    begin_id = 0
     for i, fn, im in images:
         if i < begin_id:
             continue
