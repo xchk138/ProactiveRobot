@@ -78,6 +78,9 @@ def train(hyp, opt, device, tb_writer=None):
     nc = 1 if opt.single_cls else int(data_dict['nc'])  # number of classes
     names = ['item'] if opt.single_cls and len(data_dict['names']) != 1 else data_dict['names']  # class names
     assert len(names) == nc, '%g names found for nc=%g dataset in %s' % (len(names), nc, opt.data)  # check
+    print('=====================================')
+    print(names)
+    print('=====================================')
 
     # Model
     pretrained = weights.endswith('.pt')
@@ -97,6 +100,11 @@ def train(hyp, opt, device, tb_writer=None):
         check_dataset(data_dict)  # check
     train_path = data_dict['train']
     test_path = data_dict['val']
+    # get number of checkpoints 
+    if 'nk' in data_dict.keys():
+        num_kpts = data_dict['nk']
+    else:
+        num_kpts = 17 # human pose has 17 keypoints for default
 
     # Freeze
     freeze = []  # parameter names to freeze (full or partial)
@@ -186,7 +194,7 @@ def train(hyp, opt, device, tb_writer=None):
         logger.info('Using SyncBatchNorm()')
 
     # Trainloader
-    dataloader, dataset = create_dataloader(train_path, imgsz, batch_size, gs, opt,
+    dataloader, dataset = create_dataloader(train_path, num_kpts, imgsz, batch_size, gs, opt,
                                             hyp=hyp, augment=True, cache=opt.cache_images, rect=opt.rect, rank=rank,
                                             world_size=opt.world_size, workers=opt.workers,
                                             image_weights=opt.image_weights, quad=opt.quad, prefix=colorstr('train: '), kpt_label=kpt_label)
@@ -196,7 +204,7 @@ def train(hyp, opt, device, tb_writer=None):
 
     # Process 0
     if rank in [-1, 0]:
-        testloader = create_dataloader(test_path, imgsz_test, batch_size * 2, gs, opt,  # testloader
+        testloader = create_dataloader(test_path, num_kpts, imgsz_test, batch_size * 2, gs, opt,  # testloader
                                        hyp=hyp, cache=opt.cache_images and not opt.notest, rect=True, rank=-1,
                                        world_size=opt.world_size, workers=opt.workers,
                                        pad=0.5, prefix=colorstr('val: '), kpt_label=kpt_label)[0]
@@ -503,7 +511,7 @@ if __name__ == '__main__':
     set_logging(opt.global_rank)
     if opt.global_rank in [-1, 0]:
         check_git_status()
-        check_requirements(exclude=('pycocotools', 'thop'))
+        check_requirements(exclude=('pycocotools', 'thop', 'onnxruntime'))
 
     # Resume
     wandb_run = check_wandb_resume(opt)
@@ -547,10 +555,12 @@ if __name__ == '__main__':
             prefix = colorstr('tensorboard: ')
             logger.info(f"{prefix}Start with 'tensorboard --logdir {opt.project}', view at http://localhost:6006/")
             tb_writer = SummaryWriter(opt.save_dir)  # Tensorboard
+        print('using hyp parameters for training...')
         train(hyp, opt, device, tb_writer)
 
     # Evolve hyperparameters (optional)
     else:
+        print('evolving hyper parameters...')
         # Hyperparameter evolution metadata (mutation scale 0-1, lower_limit, upper_limit)
         meta = {'lr0': (1, 1e-5, 1e-1),  # initial learning rate (SGD=1E-2, Adam=1E-3)
                 'lrf': (1, 0.01, 1.0),  # final OneCycleLR learning rate (lr0 * lrf)
