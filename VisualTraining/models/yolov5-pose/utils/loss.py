@@ -87,9 +87,10 @@ class QFocalLoss(nn.Module):
 
 class ComputeLoss:
     # Compute losses
-    def __init__(self, model, autobalance=False, kpt_label=False):
+    def __init__(self, model, autobalance=False, kpt_label=False, nkpts=17):
         super(ComputeLoss, self).__init__()
         self.kpt_label = kpt_label
+        self.nkpts = nkpts
         device = next(model.parameters()).device  # get model device
         h = model.hyp  # hyperparameters
 
@@ -116,7 +117,12 @@ class ComputeLoss:
     def __call__(self, p, targets):  # predictions, targets, model
         device = targets.device
         lcls, lbox, lobj, lkpt, lkptv = torch.zeros(1, device=device), torch.zeros(1, device=device), torch.zeros(1, device=device), torch.zeros(1, device=device), torch.zeros(1, device=device)
-        sigmas = torch.tensor([.26, .25, .25, .35, .35, .79, .79, .72, .72, .62, .62, 1.07, 1.07, .87, .87, .89, .89], device=device) / 10.0
+        if self.nkpts == 17:
+            sigmas = torch.tensor([.26, .25, .25, .35, .35, .79, .79, .72, .72, .62, .62, 1.07, 1.07, .87, .87, .89, .89], device=device) / 10.0
+        elif self.nkpts==2:
+            sigmas = torch.tensor([1.0, 1.0], device=device) / 10.0
+        else:
+            assert False
         tcls, tbox, tkpt, indices, anchors = self.build_targets(p, targets)  # targets
 
         # Losses
@@ -144,6 +150,10 @@ class ComputeLoss:
                     lkptv += self.BCEcls(pkpt_score, kpt_mask.float()) 
                     #l2 distance based loss
                     #lkpt += (((pkpt-tkpt[i])*kpt_mask)**2).mean()  #Try to make this loss based on distance instead of ordinary difference
+                    
+                    #print(pkpt_y.shape)
+                    #print(tkpt[i].shape)
+
                     #oks based loss
                     d = (pkpt_x-tkpt[i][:,0::2])**2 + (pkpt_y-tkpt[i][:,1::2])**2
                     s = torch.prod(tbox[i][:,-2:], dim=1, keepdim=True)
@@ -184,7 +194,7 @@ class ComputeLoss:
         na, nt = self.na, targets.shape[0]  # number of anchors, targets
         tcls, tbox, tkpt, indices, anch = [], [], [], [], []
         if self.kpt_label:
-            gain = torch.ones(41, device=targets.device)  # normalized to gridspace gain
+            gain = torch.ones(7+self.nkpts*2, device=targets.device)  # normalized to gridspace gain
         else:
             gain = torch.ones(7, device=targets.device)  # normalized to gridspace gain
         ai = torch.arange(na, device=targets.device).float().view(na, 1).repeat(1, nt)  # same as .repeat_interleave(nt)
@@ -199,7 +209,7 @@ class ComputeLoss:
         for i in range(self.nl):
             anchors = self.anchors[i]
             if self.kpt_label:
-                gain[2:40] = torch.tensor(p[i].shape)[19*[3, 2]]  # xyxy gain
+                gain[2:6+self.nkpts*2] = torch.tensor(p[i].shape)[int(self.nkpts+2)*[3, 2]]  # xyxy gain
             else:
                 gain[2:6] = torch.tensor(p[i].shape)[[3, 2, 3, 2]]  # xyxy gain
 

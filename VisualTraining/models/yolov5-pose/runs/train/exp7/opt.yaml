@@ -1,4 +1,4 @@
-weights: ''
+weights: weights/yolov5n.pt
 cfg: models/yolov5n-dashboard.yaml
 data: data/dashboard_kpts.yaml
 hyp: data/hyp.scratch.yaml

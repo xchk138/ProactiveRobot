@@ -46,6 +46,7 @@ def test(data,
          tidl_load=False,
          dump_img=False,
          kpt_label=False,
+         num_kpts=17,
          flip_test=False):
     # Initialize/load model and set device
     training = model is not None
@@ -263,10 +264,10 @@ def test(data,
         if plots and batch_i < 3000:
             f = save_dir / f'{path.stem}_labels.jpg'  # labels
             #Thread(target=plot_images, args=(img, targets, paths, f, names), daemon=True).start()
-            plot_images(img, targets, paths, f, names, kpt_label=kpt_label, orig_shape=shapes[si])
+            plot_images(img, targets, num_kpts, paths, f, names, kpt_label=kpt_label, orig_shape=shapes[si])
             f = save_dir / f'{path.stem}_pred.jpg'  # predictions
             #Thread(target=plot_images, args=(img, output_to_target(out), paths, f, names), daemon=True).start()
-            plot_images(img, output_to_target(out), paths, f, names, kpt_label=kpt_label, steps=3, orig_shape=shapes[si])
+            plot_images(img, output_to_target(out), num_kpts, paths, f, names, kpt_label=kpt_label, steps=3, orig_shape=shapes[si])
 
     # Compute statistics
     stats = [np.concatenate(x, 0) for x in zip(*stats)]  # to numpy

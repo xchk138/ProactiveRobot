@@ -1,5 +1,5 @@
 # parameters
-nc: 2  # number of classes
+nc: 1  # number of classes
 nkpt: 2 # number of keypoints
 depth_multiple: 0.33  # model depth multiple
 width_multiple: 0.25  # layer channel multiple

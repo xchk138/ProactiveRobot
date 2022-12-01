@@ -3,8 +3,9 @@ train: /home/xc/space1/gits/ProactiveRobot/DashboardRecognition/data/dashboard-p
 val: /home/xc/space1/gits/ProactiveRobot/DashboardRecognition/data/dashboard-pointer/val.txt  # images
 
 # number of classes
-nc: 2
+nc: 1
 # number of keypoints
 nk: 2
 
-names: [ 'dashboard', 'display']
+names: [ 'dashboard' ]
+kpt_index: 0 # keypoint index

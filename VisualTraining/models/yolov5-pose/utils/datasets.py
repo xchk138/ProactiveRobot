@@ -56,11 +56,11 @@ def exif_size(img):
     return s
 
 
-def create_dataloader(path, num_kpts, imgsz, batch_size, stride, opt, hyp=None, augment=False, cache=False, pad=0.0, rect=False,
+def create_dataloader(path, num_kpts, kpt_index, imgsz, batch_size, stride, opt, hyp=None, augment=False, cache=False, pad=0.0, rect=False,
                       rank=-1, world_size=1, workers=8, image_weights=False, quad=False, prefix='', tidl_load=False, kpt_label=False):
     # Make sure only the first process in DDP process the dataset first, and the following others can use the cache
     with torch_distributed_zero_first(rank):
-        dataset = LoadImagesAndLabels(path, num_kpts, imgsz, batch_size,
+        dataset = LoadImagesAndLabels(path, num_kpts, kpt_index, imgsz, batch_size,
                                       augment=augment,  # augment images
                                       hyp=hyp,  # augmentation hyperparameters
                                       rect=rect,  # rectangular training
@@ -347,7 +347,7 @@ def img2label_paths(img_paths):
 
 
 class LoadImagesAndLabels(Dataset):  # for training/testing
-    def __init__(self, path, num_kpts=17, img_size=640, batch_size=16, augment=False, hyp=None, rect=False, image_weights=False,
+    def __init__(self, path, num_kpts=17, kpt_index=0, img_size=640, batch_size=16, augment=False, hyp=None, rect=False, image_weights=False,
                  cache_images=False, single_cls=False, stride=32, pad=0.0, prefix='',square=False, tidl_load=False, kpt_label=True):
         self.img_size = img_size
         self.augment = augment
@@ -361,6 +361,7 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
         self.stride = stride
         self.path = path
         self.kpt_label = kpt_label
+        self.kpt_index = kpt_index
         if num_kpts == 17: # human pose keypoints
             self.flip_index = [0, 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 16, 15]
         elif num_kpts == 2:
@@ -368,6 +369,7 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
         else:
             assert False
         # number of columns to read
+        self.nkpts = num_kpts
         self.ncols_raw = num_kpts * 3 + 5 # (x,y,occlusion) x num_kpts + (class_id, cx, cy, w, h)
         self.ncols = num_kpts * 2 + 5 # columns without occlusion labels
 
@@ -511,7 +513,6 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
                                 kpt = np.delete(l[i,5:], np.arange(2, l.shape[1]-5, 3))  #remove the occlusion paramater from the GT
                                 kpts[i] = np.hstack((l[i, :5], kpt))
                             l = kpts
-                            assert l.shape[1] == self.ncols, 'labels require specific columns each after removing occlusion paramater'
                         else:
                             assert l.shape[1] == 5, 'labels require 5 columns each'
                             assert (l[:, 1:5] <= 1).all(), 'non-normalized or out of bounds coordinate labels'
@@ -525,7 +526,15 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
                     nm += 1  # label missing
                     l = np.zeros((0, self.ncols), dtype=np.float32) if kpt_label else np.zeros((0, 5), dtype=np.float32)
 
-                x[im_file] = [l, shape, segments]
+                # get only the labels with keypoints
+                _labels = []
+                for _i in range(l.shape[0]):
+                    if l[_i][0] == self.kpt_index:
+                        l[_i][0] = 0 # make it the first and the only class
+                        _labels.append(l[_i])
+                if len(_labels) > 0:
+                    l = np.stack(_labels)
+                    x[im_file] = [l, shape, segments]
             except Exception as e:
                 nc += 1
                 print(f'{prefix}WARNING: Ignoring corrupted image and/or label {im_file}: {e}')
@@ -598,7 +607,8 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
                                                  scale=hyp['scale'],
                                                  shear=hyp['shear'],
                                                  perspective=hyp['perspective'],
-                                                 kpt_label=self.kpt_label)
+                                                 kpt_label=self.kpt_label,
+                                                 nkpts=self.nkpts)
 
             # Augment colorspace
             augment_hsv(img, hgain=hyp['hsv_h'], sgain=hyp['hsv_s'], vgain=hyp['hsv_v'])
@@ -782,7 +792,8 @@ def load_mosaic(self, index):
                                        shear=self.hyp['shear'],
                                        perspective=self.hyp['perspective'],
                                        border=self.mosaic_border,
-                                       kpt_label=self.kpt_label)  # border to remove
+                                       kpt_label=self.kpt_label,
+                                       nkpts=self.nkpts)  # border to remove
 
     return img4, labels4
 
@@ -913,7 +924,7 @@ def letterbox(img, new_shape=(640, 640), color=(114, 114, 114), auto=True, scale
 
 
 def random_perspective(img, targets=(), segments=(), degrees=10, translate=.1, scale=.1, shear=10, perspective=0.0,
-                       border=(0, 0), kpt_label=False):
+                       border=(0, 0), kpt_label=False, nkpts=17):
     # torchvision.transforms.RandomAffine(degrees=(-10, 10), translate=(.1, .1), scale=(.9, 1.1), shear=(-10, 10))
     # targets = [cls, xyxy]
 
@@ -992,18 +1003,18 @@ def random_perspective(img, targets=(), segments=(), degrees=10, translate=.1, s
             new[:, [0, 2]] = new[:, [0, 2]].clip(0, width)
             new[:, [1, 3]] = new[:, [1, 3]].clip(0, height)
             if kpt_label:
-                xy_kpts = np.ones((n * 17, 3))
-                xy_kpts[:, :2] = targets[:,5:].reshape(n*17, 2)  #num_kpt is hardcoded to 17
+                xy_kpts = np.ones((n * nkpts, 3))
+                xy_kpts[:, :2] = targets[:,5:].reshape(n*nkpts, 2)
                 xy_kpts = xy_kpts @ M.T # transform
-                xy_kpts = (xy_kpts[:, :2] / xy_kpts[:, 2:3] if perspective else xy_kpts[:, :2]).reshape(n, 34)  # perspective rescale or affine
+                xy_kpts = (xy_kpts[:, :2] / xy_kpts[:, 2:3] if perspective else xy_kpts[:, :2]).reshape(n, nkpts*2)  # perspective rescale or affine
                 xy_kpts[targets[:,5:]==0] = 0
-                x_kpts = xy_kpts[:, list(range(0,34,2))]
-                y_kpts = xy_kpts[:, list(range(1,34,2))]
+                x_kpts = xy_kpts[:, list(range(0,int(nkpts*2),2))]
+                y_kpts = xy_kpts[:, list(range(1,int(nkpts*2),2))]
 
                 x_kpts[np.logical_or.reduce((x_kpts < 0, x_kpts > width, y_kpts < 0, y_kpts > height))] = 0
                 y_kpts[np.logical_or.reduce((x_kpts < 0, x_kpts > width, y_kpts < 0, y_kpts > height))] = 0
-                xy_kpts[:, list(range(0, 34, 2))] = x_kpts
-                xy_kpts[:, list(range(1, 34, 2))] = y_kpts
+                xy_kpts[:, list(range(0, int(nkpts*2), 2))] = x_kpts
+                xy_kpts[:, list(range(1, int(nkpts*2), 2))] = y_kpts
 
         # filter candidates
         i = box_candidates(box1=targets[:, 1:5].T * s, box2=new.T, area_thr=0.01 if use_segments else 0.10)

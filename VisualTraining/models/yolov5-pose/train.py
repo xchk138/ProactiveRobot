@@ -102,9 +102,9 @@ def train(hyp, opt, device, tb_writer=None):
     test_path = data_dict['val']
     # get number of checkpoints 
     if 'nk' in data_dict.keys():
-        num_kpts = data_dict['nk']
+        num_kpts:int = data_dict['nk']
     else:
-        num_kpts = 17 # human pose has 17 keypoints for default
+        num_kpts:int = 17 # human pose has 17 keypoints for default
 
     # Freeze
     freeze = []  # parameter names to freeze (full or partial)
@@ -194,7 +194,11 @@ def train(hyp, opt, device, tb_writer=None):
         logger.info('Using SyncBatchNorm()')
 
     # Trainloader
-    dataloader, dataset = create_dataloader(train_path, num_kpts, imgsz, batch_size, gs, opt,
+    kpt_index = 0
+    if 'kpt_index' in data_dict:
+        kpt_index = int(data_dict['kpt_index'])
+    
+    dataloader, dataset = create_dataloader(train_path, num_kpts, kpt_index, imgsz, batch_size, gs, opt,
                                             hyp=hyp, augment=True, cache=opt.cache_images, rect=opt.rect, rank=rank,
                                             world_size=opt.world_size, workers=opt.workers,
                                             image_weights=opt.image_weights, quad=opt.quad, prefix=colorstr('train: '), kpt_label=kpt_label)
@@ -204,7 +208,7 @@ def train(hyp, opt, device, tb_writer=None):
 
     # Process 0
     if rank in [-1, 0]:
-        testloader = create_dataloader(test_path, num_kpts, imgsz_test, batch_size * 2, gs, opt,  # testloader
+        testloader = create_dataloader(test_path, num_kpts, kpt_index, imgsz_test, batch_size * 2, gs, opt,  # testloader
                                        hyp=hyp, cache=opt.cache_images and not opt.notest, rect=True, rank=-1,
                                        world_size=opt.world_size, workers=opt.workers,
                                        pad=0.5, prefix=colorstr('val: '), kpt_label=kpt_label)[0]
@@ -249,7 +253,7 @@ def train(hyp, opt, device, tb_writer=None):
     results = (0, 0, 0, 0, 0, 0, 0)  # P, R, mAP@.5, mAP@.5-.95, val_loss(box, obj, cls)
     scheduler.last_epoch = start_epoch - 1  # do not move
     scaler = amp.GradScaler(enabled=cuda)
-    compute_loss = ComputeLoss(model, kpt_label=kpt_label)  # init loss class
+    compute_loss = ComputeLoss(model, kpt_label=kpt_label, nkpts=num_kpts)  # init loss class
     logger.info(f'Image sizes {imgsz} train, {imgsz_test} test\n'
                 f'Using {dataloader.num_workers} dataloader workers\n'
                 f'Logging results to {save_dir}\n'
@@ -339,7 +343,7 @@ def train(hyp, opt, device, tb_writer=None):
                 # Plot
                 if plots and ni < 33:
                     f = save_dir / f'train_batch{ni}.jpg'  # filename
-                    plot_images(imgs, targets, paths, f, kpt_label=kpt_label)
+                    plot_images(imgs, targets, num_kpts, paths, f, kpt_label=kpt_label)
                     #Thread(target=plot_images, args=(imgs, targets, paths, f), daemon=True).start()
                     # if tb_writer:
                     #     tb_writer.add_image(f, result, dataformats='HWC', global_step=epoch)
