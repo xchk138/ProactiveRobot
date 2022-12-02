@@ -2,7 +2,7 @@ weights: weights/yolov5n.pt
 cfg: models/yolov5n-dashboard.yaml
 data: data/dashboard_kpts.yaml
 hyp: data/hyp.scratch.yaml
-epochs: 300
+epochs: 600
 batch_size: 64
 img_size:
 - 224

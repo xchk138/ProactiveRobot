@@ -378,7 +378,8 @@ def train(hyp, opt, device, tb_writer=None):
                                                  wandb_logger=wandb_logger,
                                                  compute_loss=compute_loss,
                                                  is_coco=is_coco,
-                                                 kpt_label=kpt_label)
+                                                 kpt_label=kpt_label,
+                                                 num_kpts=num_kpts)
 
             # Write
             with open(results_file, 'a') as f:
@@ -450,7 +451,8 @@ def train(hyp, opt, device, tb_writer=None):
                                           save_json=True,
                                           plots=False,
                                           is_coco=is_coco,
-                                          kpt_label=kpt_label)
+                                          kpt_label=kpt_label,
+                                          num_kpts=num_kpts)
 
         # Strip optimizers
         final = best if best.exists() else last  # final model
@@ -476,7 +478,7 @@ if __name__ == '__main__':
     parser.add_argument('--cfg', type=str, default='', help='model.yaml path')
     parser.add_argument('--data', type=str, default='data/coco128.yaml', help='data.yaml path')
     parser.add_argument('--hyp', type=str, default='data/hyp.scratch.yaml', help='hyperparameters path')
-    parser.add_argument('--epochs', type=int, default=300)
+    parser.add_argument('--epochs', type=int, default=600) # 300 for default
     parser.add_argument('--batch-size', type=int, default=16, help='total batch size for all GPUs')
     parser.add_argument('--img-size', nargs='+', type=int, default=[640, 640], help='[train, test] image sizes')
     parser.add_argument('--rect', action='store_true', help='rectangular training')

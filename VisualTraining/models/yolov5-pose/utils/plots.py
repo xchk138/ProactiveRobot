@@ -87,9 +87,6 @@ def plot_one_box(x, im, color=None, label=None, line_thickness=3, kpt_label=Fals
 def plot_skeleton_kpts(im, kpts, steps, orig_shape=None):
     #Plot the skeleton and keypointsfor coco datatset
     num_kpts = len(kpts) // steps
-    print('================================')
-    print(kpts)
-    exit(0)
     if num_kpts == 17:
         palette = np.array([[255, 128, 0], [255, 153, 51], [255, 178, 102],
                             [230, 230, 0], [255, 153, 255], [153, 204, 255],
@@ -105,7 +102,7 @@ def plot_skeleton_kpts(im, kpts, steps, orig_shape=None):
         pose_kpt_color = palette[[16, 16, 16, 16, 16, 0, 0, 0, 0, 0, 0, 9, 9, 9, 9, 9, 9]]
     elif num_kpts == 2:
         palette = np.array([[200, 80, 0],[0, 80, 200],[30, 200, 30]])
-        skeleton = [[0,1]]
+        skeleton = [[1,2]]
         pose_limb_color = palette[[2]]
         pose_kpt_color = palette[[0, 1]]
     else:
@@ -116,7 +113,7 @@ def plot_skeleton_kpts(im, kpts, steps, orig_shape=None):
     for kid in range(num_kpts):
         r, g, b = pose_kpt_color[kid]
         x_coord, y_coord = kpts[steps * kid], kpts[steps * kid + 1]
-        if not (x_coord % 640 == 0 or y_coord % 640 == 0):
+        if not (x_coord % orig_shape == 0 or y_coord % orig_shape == 0):
             if steps == 3:
                 conf = kpts[steps * kid + 2]
                 if conf < 0.5:
@@ -132,9 +129,9 @@ def plot_skeleton_kpts(im, kpts, steps, orig_shape=None):
             conf2 = kpts[(sk[1]-1)*steps+2]
             if conf1<0.5 or conf2<0.5:
                 continue
-        if pos1[0]%640 == 0 or pos1[1]%640==0 or pos1[0]<0 or pos1[1]<0:
+        if pos1[0]%orig_shape == 0 or pos1[1]%orig_shape==0 or pos1[0]<0 or pos1[1]<0:
             continue
-        if pos2[0] % 640 == 0 or pos2[1] % 640 == 0 or pos2[0]<0 or pos2[1]<0:
+        if pos2[0] % orig_shape == 0 or pos2[1] % orig_shape == 0 or pos2[0]<0 or pos2[1]<0:
             continue
         cv2.line(im, pos1, pos2, (int(r), int(g), int(b)), thickness=2)
 
@@ -187,8 +184,10 @@ def output_to_target(output):
 
 def plot_images(images, targets, nkpts, paths=None, fname='images.jpg', names=None, max_size=640, max_subplots=16, kpt_label=True, steps=2, orig_shape=None):
     # Plot image grid with labels
-    print(targets)
-
+    if orig_shape is None:
+        assert len(images[0])==3
+        assert images[0].shape[1]==images[0].shape[2]
+        orig_shape = images[0].shape[2]
     if isinstance(images, torch.Tensor):
         images = images.cpu().float().numpy()
     if isinstance(targets, torch.Tensor):
