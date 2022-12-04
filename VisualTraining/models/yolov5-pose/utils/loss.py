@@ -120,7 +120,7 @@ class ComputeLoss:
         if self.nkpts == 17:
             sigmas = torch.tensor([.26, .25, .25, .35, .35, .79, .79, .72, .72, .62, .62, 1.07, 1.07, .87, .87, .89, .89], device=device) / 10.0
         elif self.nkpts==2:
-            sigmas = torch.tensor([1.0, 1.0], device=device) / 10.0
+            sigmas = torch.tensor([.5, .5], device=device) / 1.0
         else:
             assert False
         tcls, tbox, tkpt, indices, anchors = self.build_targets(p, targets)  # targets
