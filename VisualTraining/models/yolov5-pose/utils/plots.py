@@ -119,7 +119,7 @@ def plot_skeleton_kpts(im, kpts, steps, orig_shape=None,offset=None):
     for kid in range(num_kpts):
         r, g, b = pose_kpt_color[kid]
         x_coord, y_coord = kpts[steps * kid], kpts[steps * kid + 1]
-        if x_coord >= 0 and x_coord < orig_shape[0] and y_coord >= 0 and y_coord < orig_shape[1]:
+        if x_coord > 0 and x_coord < orig_shape[0] and y_coord > 0 and y_coord < orig_shape[1]:
             if steps == 3:
                 conf = kpts[steps * kid + 2]
                 if conf < 0.2:
@@ -137,9 +137,9 @@ def plot_skeleton_kpts(im, kpts, steps, orig_shape=None,offset=None):
             conf2 = kpts[(sk[1]-1)*steps+2]
             if conf1<0.2 or conf2<0.2:  # 0.5 for default
                 continue
-        if pos1[0] < 0 or pos1[0] >= orig_shape[0] or pos1[1] < 0 or pos1[1] >= orig_shape[1]:
+        if pos1[0] <= 0 or pos1[0] >= orig_shape[0] or pos1[1] <= 0 or pos1[1] >= orig_shape[1]:
             continue
-        if pos2[0] < 0 or pos2[0] >= orig_shape[0] or pos2[1] < 0 or pos2[1] >= orig_shape[1]:
+        if pos2[0] <= 0 or pos2[0] >= orig_shape[0] or pos2[1] <= 0 or pos2[1] >= orig_shape[1]:
             continue
         pos1 = (pos1[0] + offset[0], pos1[1] + offset[1])
         pos2 = (pos2[0] + offset[0], pos2[1] + offset[1])
@@ -271,7 +271,7 @@ def plot_images(images, targets, nkpts, paths=None, fname='images.jpg', names=No
                 cls = int(classes[j])
                 color = colors(cls)
                 cls = names[cls] if names else cls
-                if labels or conf[j] > 0.2:  # 0.1 for default conf thresh
+                if labels or conf[j] > 0.5:  # 0.1 for default conf thresh
                     label = '%s' % cls if labels else '%s %.1f' % (cls, conf[j])
                     if kpt_label:
                         plot_one_box(box, mosaic, label=label, color=color, line_thickness=tl, kpt_label=kpt_label, kpts=kpts[:,j], steps=steps, orig_shape=orig_shape,offset=(block_x, block_y))

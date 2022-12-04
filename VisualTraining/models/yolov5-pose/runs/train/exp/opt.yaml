@@ -1,9 +1,9 @@
-weights: weights/last.pt
+weights: weights/best.pt
 cfg: models/yolov5n-dashboard.yaml
 data: data/dashboard_kpts.yaml
 hyp: data/hyp.scratch.yaml
 epochs: 600
-batch_size: 64
+batch_size: 32
 img_size:
 - 224
 - 224
@@ -38,4 +38,4 @@ kpt_label: true
 world_size: 1
 global_rank: -1
 save_dir: runs/train/exp
-total_batch_size: 64
+total_batch_size: 32
