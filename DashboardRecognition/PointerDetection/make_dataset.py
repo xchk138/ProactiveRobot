@@ -469,15 +469,15 @@ if __name__ == '__main__':
             AppendSampleToList(file_val_list, images_dir, val_dir, frame_id)
         return True
 
-    images = GetImages('../data/raw/2_YaLiBiao')
+    images = GetImages('../data/raw/3_YeJing')
     detector = YoloDetector('../models/yolov5n-dashboard.onnx')
 
-    counter = 345
-    begin_id = 0
+    counter = 4834
+    begin_id = 362
     for i, fn, im in images:
         if i < begin_id:
             continue
         print("GLOBAL(%d)-LOCAL(%d): %s" % (counter, i, fn))
-        rects, labels, kpts = GetBoundingRectsAndLabels(im, default_label=2, backend=detector)
+        rects, labels, kpts = GetBoundingRectsAndLabels(im, default_label=1, backend=detector)
         if SaveImageAndLabels(counter, im, rects, labels, kpts):
           counter += len(rects)
