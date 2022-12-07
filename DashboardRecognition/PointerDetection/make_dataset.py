@@ -469,11 +469,11 @@ if __name__ == '__main__':
             AppendSampleToList(file_val_list, images_dir, val_dir, frame_id)
         return True
 
-    images = GetImages('../data/raw/3_YeJing')
+    images = GetImages('../data/raw/5_YouWeiJi')
     detector = YoloDetector('../models/yolov5n-dashboard.onnx')
 
-    counter = 4834
-    begin_id = 362
+    counter = 5073
+    begin_id = 0
     for i, fn, im in images:
         if i < begin_id:
             continue
