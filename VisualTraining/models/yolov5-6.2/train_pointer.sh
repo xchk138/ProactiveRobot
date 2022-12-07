@@ -1,0 +1,1 @@
+python train.py --data pointer.yaml --cfg yolov5n-pointer.yaml --weights 'yolov5n.pt' --batch-size 64 --imgsz 224

@@ -470,7 +470,7 @@ if __name__ == '__main__':
         return True
 
     images = GetImages('../data/raw/2_YaLiBiao')
-    detector = YoloDetector('../models/yolov5n-dashboard.onnx')
+    detector = YoloDetector('../models/yolov5n-pointer.onnx', num_class=3)
 
     counter = 7124
     begin_id = 0
