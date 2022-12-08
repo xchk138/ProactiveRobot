@@ -254,10 +254,27 @@ class DrawConsole(object):
             if len(self.targets) > 0:
                 # find the bounding boxes that has been clicked
                 new_targets = []
+                is_clicked = []
                 for i in range(len(self.targets)):
                     # if pos is in rect
                     if not DrawConsole.point_in_bbox(pos, self.targets[i].bbox):
                         new_targets.append(DrawConsole.Target(self.targets[i].bbox, self.targets[i].label, self.targets[i].kpts))
+                    else:
+                        is_clicked.append(i)
+                if len(self.targets) - len(new_targets) > 1:
+                    # find the smallest one 
+                    _min_area = 1e6
+                    _min_id = -1
+                    for i in range(len(is_clicked)):
+                        bb = self.targets[is_clicked[i]].bbox
+                        _area = bb[2]*bb[3]
+                        if _min_area >= _area:
+                            _min_id = i
+                            _min_area = _area
+                    # remove the smallest one
+                    for i in range(len(is_clicked)):
+                        if i != _min_id:
+                            new_targets.append(self.targets[is_clicked[i]])
                 self.targets = new_targets
                 self.im_tmp = self.im_ori.copy()
                 DrawConsole.show_targets(self.im_tmp, self.targets)
@@ -472,8 +489,8 @@ if __name__ == '__main__':
     images = GetImages('../data/raw/2_YaLiBiao')
     detector = YoloDetector('../models/yolov5n-pointer.onnx', num_class=3)
 
-    counter = 7124
-    begin_id = 0
+    counter = 7143
+    begin_id = 9
     for i, fn, im in images:
         if i < begin_id:
             continue

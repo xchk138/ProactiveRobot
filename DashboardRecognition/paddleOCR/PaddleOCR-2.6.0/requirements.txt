@@ -1,0 +1,15 @@
+shapely
+scikit-image
+imgaug
+pyclipper
+lmdb
+tqdm
+numpy
+visualdl
+rapidfuzz
+opencv-contrib-python==4.4.0.46
+cython
+lxml
+premailer
+openpyxl
+attrdict
