@@ -19,7 +19,7 @@ python main.py
 
 ```python
 # For example
-python3 main.py --dataset=cifar10 --model=vqvae --data-dir=~/.datasets --epochs=3
+python3 main.py --dataset=cifar10 --model=vqvae --data-dir=~/.datasets --epochs=3 --k=10 --d=64
 ```
 
 # Results

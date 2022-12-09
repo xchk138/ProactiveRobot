@@ -227,7 +227,8 @@ def train(epoch, model, train_loader, optimizer, cuda, log_interval, save_path, 
             epoch_losses[key] /= (len(train_loader.dataset) / train_loader.batch_size)
     loss_string = '\t'.join(['{}: {:.6f}'.format(k, v) for k, v in epoch_losses.items()])
     logging.info('====> Epoch: {} {}'.format(epoch, loss_string))
-    writer.add_histogram('dict frequency', outputs[3], bins=range(args.k + 1))
+    
+    writer.add_histogram('dict frequency', outputs[3], bins=range(default_hyperparams[args.dataset]['k'] + 1))
     model.print_atom_hist(outputs[3])
     return epoch_losses
 
