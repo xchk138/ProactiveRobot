@@ -261,7 +261,9 @@ class DrawConsole(object):
                         new_targets.append(DrawConsole.Target(self.targets[i].bbox, self.targets[i].label, self.targets[i].kpts))
                     else:
                         is_clicked.append(i)
-                if len(self.targets) - len(new_targets) > 1:
+                if len(is_clicked) == 1:
+                    self.label = self.targets[is_clicked[0]].label
+                elif len(is_clicked) > 1:
                     # find the smallest one 
                     _min_area = 1e6
                     _min_id = -1
@@ -275,6 +277,8 @@ class DrawConsole(object):
                     for i in range(len(is_clicked)):
                         if i != _min_id:
                             new_targets.append(self.targets[is_clicked[i]])
+                    # set the current label as the deleted one
+                    self.label = self.targets[is_clicked[_min_id]].label
                 self.targets = new_targets
                 self.im_tmp = self.im_ori.copy()
                 DrawConsole.show_targets(self.im_tmp, self.targets)
@@ -489,8 +493,8 @@ if __name__ == '__main__':
     images = GetImages('../data/raw/2_YaLiBiao')
     detector = YoloDetector('../models/yolov5n-pointer.onnx', num_class=3)
 
-    counter = 7143
-    begin_id = 9
+    counter = 7319
+    begin_id = 85
     for i, fn, im in images:
         if i < begin_id:
             continue
