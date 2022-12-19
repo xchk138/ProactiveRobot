@@ -493,8 +493,8 @@ if __name__ == '__main__':
     images = GetImages('../data/raw/2_YaLiBiao')
     detector = YoloDetector('../models/yolov5n-pointer.onnx', num_class=3)
 
-    counter = 7319
-    begin_id = 85
+    counter = 8002
+    begin_id = 383
     for i, fn, im in images:
         if i < begin_id:
             continue
