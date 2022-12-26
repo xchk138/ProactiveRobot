@@ -365,8 +365,8 @@ def GetBoundingRectsAndLabels(im, default_label=0, backend=None):
 
     # use pretrained model to generate coarse detection result
     if backend is not None:
-        bboxes, labels = backend.infer_detail(im)
-        #bboxes, labels = backend.infer(im)
+        #bboxes, labels = backend.infer_detail(im)
+        bboxes, labels = backend.infer(im)
         for i in range(len(bboxes)):
             if LABEL_NAMES[labels[i]] in BBOX_TYPES:
                 info.targets.append(DrawConsole.Target(bboxes[i], labels[i]))
@@ -490,15 +490,17 @@ if __name__ == '__main__':
             AppendSampleToList(file_val_list, images_dir, val_dir, frame_id)
         return True
     
-    images = GetImages('../data/raw/2_YaLiBiao')
+    images = GetImages('../data/samples/real/2')
+    #images = GetImages('../data/raw/2_YaLiBiao')
     detector = YoloDetector('../models/yolov5n-pointer-1.onnx', num_class=3, score_thres=0.45, conf_thres=0.45)
 
     counter = 10023
-    begin_id = 1252
+    #begin_id = 1252
+    begin_id = 0
     for i, fn, im in images:
         if i < begin_id:
             continue
         print("GLOBAL(%d)-LOCAL(%d): %s" % (counter, i, fn))
         rects, labels, kpts = GetBoundingRectsAndLabels(im, default_label=2, backend=detector)
-        if SaveImageAndLabels(counter, im, rects, labels, kpts):
-          counter += len(rects)
+        #if SaveImageAndLabels(counter, im, rects, labels, kpts):
+        #  counter += len(rects)

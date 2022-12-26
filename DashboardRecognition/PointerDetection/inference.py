@@ -261,3 +261,13 @@ class YoloDetector(object):
             bboxes += [x.map_rect(bb) for bb in _bboxes]
             labels += _labels
         return YoloDetector.merge_bboxes(bboxes, labels)
+    
+    # todo : get each bbox of dashboard, and extend it to detect pointers within it.
+    def infer_closer(self, im:np.ndarray):
+        bboxes = []
+        labels = []
+        _bboxes, _labels = self.infer(im)
+        for i in range(_bboxes):
+            if _labels[i]
+
+
