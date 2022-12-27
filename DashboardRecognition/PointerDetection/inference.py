@@ -3,6 +3,8 @@
 import cv2
 import numpy as np
 
+LABEL_NAMES = ['Dashboard', 'Display', 'Pointer']
+
 class YoloDetector(object):
     def __init__(self, onnx_path, infer_size=224, num_class=2, score_thres=0.6, conf_thres=0.6) -> None:
         self.net = cv2.dnn.readNetFromONNX(onnx_path)
@@ -249,7 +251,59 @@ class YoloDetector(object):
                 bbs.append(bboxes[i])
                 lbs.append(labels[i])
         return bbs, lbs
-
+    
+    @staticmethod
+    def pair_objects(bboxes, labels, min_iou=0.8):
+        bbs = bboxes
+        lbs = labels
+        # match dashboard with pointers
+        dashboards = []
+        pointers = []
+        others = []
+        for i in range(len(bbs)):
+            if LABEL_NAMES[lbs[i]].lower() == 'dashboard':
+                dashboards += [i]
+            elif LABEL_NAMES[lbs[i]].lower() == 'pointer':
+                pointers += [i]
+            else:
+                others += [i]
+        ptr_pair = [list() for _ in range(len(dashboards))]
+        for i in range(len(pointers)):
+            _max_iou = min_iou
+            _ds_id = -1
+            for j in range(len(dashboards)):
+                _iou = YoloDetector.iou(bbs[pointers[i]], bbs[dashboards[j]])
+                if _iou >= _max_iou:
+                    _ds_id = j
+                    _max_iou = _iou
+            if _ds_id >= 0: # matching dashboard found, add the pointer to the dashboard
+                ptr_pair[_ds_id] += [pointers[i]]
+        # merge all objects, including dashboards and their related pointers, and others
+        ret_bbs = []
+        ret_lbs = []
+        ret_obj = [] # IDs to connect different components
+        uid = 0
+        assert len(ptr_pair) == len(dashboards)
+        for i in range(len(ptr_pair)):
+            if len(ptr_pair[i]) > 0:
+                # add this dashboard
+                ret_obj += [uid]
+                ret_bbs += [bbs[dashboards[i]]]
+                ret_lbs += [lbs[dashboards[i]]]
+                # add all related pointers
+                for j in ptr_pair[i]:
+                    ret_obj += [uid]
+                    ret_bbs += [bbs[j]]
+                    ret_lbs += [lbs[j]]
+                # auto-increase the unique object id
+                uid += 1
+        # then add all others
+        for i in others:
+            ret_obj += [uid]
+            ret_bbs += [bbs[i]]
+            ret_lbs += [lbs[i]]
+            uid += 1
+        return ret_bbs, ret_lbs, ret_obj, uid
 
     def infer_detail(self, im:np.ndarray):
         bboxes = []
@@ -266,8 +320,44 @@ class YoloDetector(object):
     def infer_closer(self, im:np.ndarray):
         bboxes = []
         labels = []
+        extend_ratio = 1.5
         _bboxes, _labels = self.infer(im)
-        for i in range(_bboxes):
-            if _labels[i]
+        for i in range(len(_bboxes)):
+            if LABEL_NAMES[_labels[i]].lower() == 'dashboard':
+                # extend the region
+                h, w = im.shape[:2]
+                cx = _bboxes[i][0] + _bboxes[i][2]/2.0
+                cy = _bboxes[i][1] + _bboxes[i][3]/2.0
+                cw = _bboxes[i][2] * extend_ratio
+                ch = _bboxes[i][3] * extend_ratio
+                crop_x1 = int(max(0, cx - cw/2.0))
+                crop_y1 = int(max(0, cy - ch/2.0))
+                crop_x2 = int(min(w, cx + cw/2.0))
+                crop_y2 = int(min(h, cy + ch/2.0))
+                im_crop = im[crop_y1:crop_y2, crop_x1:crop_x2].copy()
+                bbs, lbs = self.infer(im_crop)
+                # convert back to its original coordinates
+                # check if pointer found within this subregion
+                pointer_found = False
+                for ii in range(len(bbs)):
+                    bbs[ii] = (bbs[ii][0] + crop_x1, bbs[ii][1] + crop_y1, bbs[ii][2], bbs[ii][3])
+                    if LABEL_NAMES[lbs[ii]].lower() == 'pointer':
+                        bboxes.append(bbs[ii])
+                        labels.append(lbs[ii])
+                        pointer_found = True
+                if pointer_found:
+                    for ii in range(len(bbs)):
+                        if LABEL_NAMES[lbs[ii]].lower() == 'dashboard':
+                            bboxes.append(bbs[ii])
+                            labels.append(lbs[ii])
+            elif LABEL_NAMES[_labels[i]].lower() in ['display']:
+                bboxes.append(_bboxes[i])
+                labels.append(_labels[i])
+        # merge all bbox with matched labels and IOU
+        bboxes, labels = YoloDetector.merge_bboxes(bboxes, labels)
+        bboxes, labels, objects, obj_num = YoloDetector.pair_objects(bboxes, labels)
+        print('found %d objects' % obj_num)
+        return bboxes, labels, objects
+                
 
 

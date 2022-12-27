@@ -366,7 +366,8 @@ def GetBoundingRectsAndLabels(im, default_label=0, backend=None):
     # use pretrained model to generate coarse detection result
     if backend is not None:
         #bboxes, labels = backend.infer_detail(im)
-        bboxes, labels = backend.infer(im)
+        #bboxes, labels = backend.infer(im)
+        bboxes, labels, _ = backend.infer_closer(im)
         for i in range(len(bboxes)):
             if LABEL_NAMES[labels[i]] in BBOX_TYPES:
                 info.targets.append(DrawConsole.Target(bboxes[i], labels[i]))
@@ -492,7 +493,7 @@ if __name__ == '__main__':
     
     images = GetImages('../data/samples/real/2')
     #images = GetImages('../data/raw/2_YaLiBiao')
-    detector = YoloDetector('../models/yolov5n-pointer-1.onnx', num_class=3, score_thres=0.45, conf_thres=0.45)
+    detector = YoloDetector('../models/yolov5n-pointer-1.onnx', num_class=3, score_thres=0.3, conf_thres=0.3)
 
     counter = 10023
     #begin_id = 1252
