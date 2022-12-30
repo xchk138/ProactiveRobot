@@ -1,7 +1,8 @@
 import paddleocr
 print(paddleocr.__version__)
 from paddleocr import PaddleOCR, draw_ocr
-import time
+import numpy as np
+print(np.__version__)
 import cv2
 print(cv2.__version__)
 
@@ -13,7 +14,44 @@ def RotateImage(im, theta, scale):
     affine_matrix = cv2.getRotationMatrix2D((im.shape[1]/2.0, im.shape[0]/2.0), theta, scale=scale)
     return cv2.warpAffine(im, affine_matrix, (im.shape[1], im.shape[0]))
 
+def PadSquare(im, size):
+    h, w = im.shape[:2]
+    pad_w, pad_h = 0, 0
+    if h > w:
+        pad_w = h - w
+    else:
+        pad_h = w - h
+    if len(im.shape)==3:
+        im_pad = np.zeros([h+pad_h, w+pad_w, im.shape[2]], im.dtype)
+        im_pad[pad_h//2:pad_h//2+h, pad_w//2:pad_w//2+w,:] = im[:,:,:]
+    else:
+        im_pad = np.zeros([h+pad_h, w+pad_w], im.dtype)
+        im_pad[pad_h//2:pad_h//2+h, pad_w//2:pad_w//2+w] = im[:,:]
+    return cv2.resize(im_pad, (size, size), interpolation=cv2.INTER_LINEAR_EXACT)
+
+def EnhanceContrast(im:np.ndarray)->np.ndarray:
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+    if len(im.shape)==3:
+        h, w, c = im.shape
+        if c==4:
+            im = im[:,:,:3]
+        # make both width and height even numbers
+        new_w, new_h = w//2 *2, h//2 *2
+        if new_w < w or new_h < h:
+            im = im[:new_h, :new_w]
+        im = cv2.cvtColor(im, cv2.COLOR_BGR2YUV_I420)
+        im[:h,:] = clahe.apply(im[:h,:])
+        im = cv2.cvtColor(im, cv2.COLOR_YUV2BGR_I420)
+    else:
+        im = clahe.apply(im)
+    return im
+
+def Binarize(im:np.ndarray)->np.ndarray:
+    return im
+
+
 if __name__ == '__main__':
+    use_tta = True
     # test image
     im_path = "t1.png"
     ocr = PaddleOCR(
@@ -30,15 +68,17 @@ if __name__ == '__main__':
         )
 
     im = cv2.imread(im_path)
-    im = cv2.resize(im, (640,640))
     # preprocess the image
-    im = RotateImage(im, -60, 1.0)
+    im = PadSquare(im, 640)
+    im = EnhanceContrast(im)
+    im = Binarize(im)
+    im = RotateImage(im, 90, 1.0)
     res = ocr.ocr(im)
 
     # draw results
     vis = im.copy()
     _color  = (0,100,200)
-    rec_thresh = 0.7
+    rec_thresh = 0.9
 
     angles = []
     values = []
