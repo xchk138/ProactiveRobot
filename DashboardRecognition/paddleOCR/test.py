@@ -10,11 +10,11 @@ def Float2Int(x):
     return tuple([int(e) for e in x])
 
 
-def RotateImage(im, theta, scale):
+def RotateImage(im, theta, scale, pad_val=0):
     affine_matrix = cv2.getRotationMatrix2D((im.shape[1]/2.0, im.shape[0]/2.0), theta, scale=scale)
-    return cv2.warpAffine(im, affine_matrix, (im.shape[1], im.shape[0]))
+    return cv2.warpAffine(im, affine_matrix, (im.shape[1], im.shape[0]), borderValue=(pad_val,pad_val,pad_val) if len(im.shape)==3 else pad_val)
 
-def PadSquare(im, size):
+def PadSquare(im, size, pad_val=0):
     h, w = im.shape[:2]
     pad_w, pad_h = 0, 0
     if h > w:
@@ -22,10 +22,10 @@ def PadSquare(im, size):
     else:
         pad_h = w - h
     if len(im.shape)==3:
-        im_pad = np.zeros([h+pad_h, w+pad_w, im.shape[2]], im.dtype)
+        im_pad = np.zeros([h+pad_h, w+pad_w, im.shape[2]], im.dtype) + pad_val
         im_pad[pad_h//2:pad_h//2+h, pad_w//2:pad_w//2+w,:] = im[:,:,:]
     else:
-        im_pad = np.zeros([h+pad_h, w+pad_w], im.dtype)
+        im_pad = np.zeros([h+pad_h, w+pad_w], im.dtype) + pad_val
         im_pad[pad_h//2:pad_h//2+h, pad_w//2:pad_w//2+w] = im[:,:]
     return cv2.resize(im_pad, (size, size), interpolation=cv2.INTER_LINEAR_EXACT)
 
@@ -46,12 +46,18 @@ def EnhanceContrast(im:np.ndarray)->np.ndarray:
         im = clahe.apply(im)
     return im
 
+
+def Smooth(im:np.ndarray)->np.ndarray:
+    return cv2.medianBlur(im, 5)
+
+
 def Binarize(im:np.ndarray)->np.ndarray:
-    return im
+    im = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+    return 255 - cv2.adaptiveThreshold(im, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, blockSize=9, C=20)
 
 
 if __name__ == '__main__':
-    use_tta = True
+    tta_splits = 1
     # test image
     im_path = "t1.png"
     ocr = PaddleOCR(
@@ -69,11 +75,17 @@ if __name__ == '__main__':
 
     im = cv2.imread(im_path)
     # preprocess the image
-    im = PadSquare(im, 640)
+    im = PadSquare(im, 640, pad_val=0)
     im = EnhanceContrast(im)
     im = Binarize(im)
-    im = RotateImage(im, 90, 1.0)
-    res = ocr.ocr(im)
+    # test time augmentation
+    batch_x = []
+    batch_x.append(RotateImage(im, 0, 0.9))
+    for i in range(tta_splits):
+        batch_x.append(RotateImage(im, i*90/tta_splits, 0.9))
+        batch_x.append(RotateImage(im, -i*90/tta_splits, 0.9))
+    batch_x = np.stack(batch_x, axis=0)
+    res = ocr.ocr(batch_x)
 
     # draw results
     vis = im.copy()
@@ -88,7 +100,7 @@ if __name__ == '__main__':
             print(text)
             last_pt = pts[-1]
             for pt in pts:
-                cv2.line(vis, Float2Int(last_pt), Float2Int(pt), _color, 3, 8)
+                cv2.line(vis, Float2Int(last_pt), Float2Int(pt), _color, 2, 8)
                 last_pt = pt
     
     cv2.imshow('ocr', vis)
