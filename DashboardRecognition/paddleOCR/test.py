@@ -55,9 +55,17 @@ def Binarize(im:np.ndarray)->np.ndarray:
     im = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
     return 255 - cv2.adaptiveThreshold(im, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, blockSize=9, C=20)
 
+def WrapAffine(pts:np.ndarray, trans:np.ndarray):
+    pts_new = []
+    assert trans.shape[0] == 2 and trans.shape[1] == 3
+    for pt in pts:
+        x = trans[0,0]*pt[0] + trans[0,1]*pt[1] + trans[0,2]
+        y = trans[1,0]*pt[0] + trans[1,1]*pt[1] + trans[1,2]
+        pts_new.append((x,y))
+    return pts_new
 
 if __name__ == '__main__':
-    tta_splits = 1
+    tta_splits = 2
     # test image
     im_path = "t1.png"
     ocr = PaddleOCR(
@@ -78,30 +86,39 @@ if __name__ == '__main__':
     im = PadSquare(im, 640, pad_val=0)
     im = EnhanceContrast(im)
     im = Binarize(im)
+    im = cv2.cvtColor(im, cv2.COLOR_GRAY2BGR)
     # test time augmentation
-    batch_x = []
-    batch_x.append(RotateImage(im, 0, 0.9))
+    scale = 0.9
+    res = []
+    angles = []
+    
     for i in range(tta_splits):
-        batch_x.append(RotateImage(im, i*90/tta_splits, 0.9))
-        batch_x.append(RotateImage(im, -i*90/tta_splits, 0.9))
-    batch_x = np.stack(batch_x, axis=0)
-    res = ocr.ocr(batch_x)
+        angles.append(i*90/tta_splits)
+        res.append(ocr.ocr(RotateImage(im, angles[-1], scale))[0])
+        if i > 0:
+            angles.append(-i*90/tta_splits)
+            res.append(ocr.ocr(RotateImage(im, angles[-1], scale))[0])
 
     # draw results
     vis = im.copy()
     _color  = (0,100,200)
     rec_thresh = 0.9
 
-    angles = []
+    bboxes = []
     values = []
 
-    for pts, text in res[0]:
-        if text[1] > rec_thresh:
-            print(text)
-            last_pt = pts[-1]
-            for pt in pts:
-                cv2.line(vis, Float2Int(last_pt), Float2Int(pt), _color, 2, 8)
-                last_pt = pt
+    for i in range(len(res)):
+        trans = cv2.getRotationMatrix2D((im.shape[1]/2.0,im.shape[0]/2.0), -angles[i], 1.0/scale)
+        #print(trans)
+        for pts, text in res[i]:
+            if text[1] > rec_thresh:
+                print(text)
+                # convert bboxes back to original coordinate
+                pts = WrapAffine(pts, trans)
+                last_pt = pts[-1]
+                for pt in pts:
+                    cv2.line(vis, Float2Int(last_pt), Float2Int(pt), _color, 2, 8)
+                    last_pt = pt
     
     cv2.imshow('ocr', vis)
     cv2.waitKey(0)
