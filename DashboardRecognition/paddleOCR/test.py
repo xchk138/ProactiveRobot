@@ -64,8 +64,57 @@ def WrapAffine(pts:np.ndarray, trans:np.ndarray):
         pts_new.append((x,y))
     return pts_new
 
+
+def IsDigit(v:str)->bool:
+    c_ = ord(v) 
+    return c_ >= ord('0') and c_ <= ord('9')
+
+def IsInteger(v:str)-> bool:
+    if v == '0':
+        return True
+    elif v[:1] == '0':
+        return False
+    for i in range(len(v)):
+        chr = v[i:i+1]
+        if not IsDigit(chr):
+            return False
+    return True
+
+def SegDecimal(v:str)-> list:
+    pid = v.find('.', 0, len(v))
+    if pid >= 0:
+        return [v[:pid],v[pid+1:]]
+    else:
+        return [v]
+
+def IsFloat(v:str)->bool:
+    for i in range(len(v)):
+        chr = v[i:i+1]
+        if not IsDigit(chr):
+            return False
+    if v[len(v)-1:] == '0':
+        return False
+    return True
+
+
+def IsDecimal(v:str):
+    parts = SegDecimal(v)
+    if len(parts) == 1:
+        return IsInteger(v)
+    else:
+        return IsInteger(parts[0]) and IsFloat(parts[1])
+
+def GetDecimal(v:str) -> float:
+    assert IsDecimal(v)
+    parts = SegDecimal(v)
+    if len(parts) == 1:
+        return int(v) # atoi_s(v)
+    else:
+        return float(v) # atof_s(v)
+
+
 if __name__ == '__main__':
-    tta_splits = 2
+    tta_splits = 3
     # test image
     im_path = "t1.png"
     ocr = PaddleOCR(
@@ -107,18 +156,33 @@ if __name__ == '__main__':
     bboxes = []
     values = []
 
+    # extract all qualified recognition results
     for i in range(len(res)):
         trans = cv2.getRotationMatrix2D((im.shape[1]/2.0,im.shape[0]/2.0), -angles[i], 1.0/scale)
         #print(trans)
         for pts, text in res[i]:
-            if text[1] > rec_thresh:
-                print(text)
-                # convert bboxes back to original coordinate
-                pts = WrapAffine(pts, trans)
-                last_pt = pts[-1]
-                for pt in pts:
-                    cv2.line(vis, Float2Int(last_pt), Float2Int(pt), _color, 2, 8)
-                    last_pt = pt
+            conf = text[1]
+            if conf < rec_thresh:
+                continue
+            if not IsDecimal(text[0]):
+                continue
+            val = GetDecimal(text[0])
+            print('val: %.3f conf: %.3f' % (val, conf))
+            # convert bboxes back to original coordinate
+            pts = WrapAffine(pts, trans)
+            # add board-ticks
+            bboxes.append(pts)
+            values.append(val)
+            last_pt = pts[-1]
+            for pt in pts:
+                cv2.line(vis, Float2Int(last_pt), Float2Int(pt), _color, 2, 8)
+                last_pt = pt
+    # remove duplicates or subparts
+    bboxes_1 = []
+    values_1 = []
+    if i in range(len(values)):
+        if bboxes_1[]
+        bboxes_1.append(bboxes[i])
     
     cv2.imshow('ocr', vis)
     cv2.waitKey(0)
