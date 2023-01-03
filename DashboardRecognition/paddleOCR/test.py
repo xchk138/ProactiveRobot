@@ -259,5 +259,29 @@ if __name__ == '__main__':
     cv2.imshow('ocr2', vis)
     cv2.waitKey(0)
 
-    # calculate angles and group boxes
-    
+    # solve the center coordinates
+    # calculate the centers for each boxes
+    centers = []
+    for i in range(len(bboxes_1)):
+        centers += [(bboxes_1[i][0] + bboxes_1[i][2]/2.0, bboxes_1[i][1] + bboxes_1[i][3]/2.0)]
+    # param (x0,y0,r), for all (x,y), minimize sum of |((x,y) - (x0,y0))^2 - r^2|
+    # consider 2 groups of bboxes
+    # using KMeans algorithm to solve two cluster settings
+    # given 1 center and 2 radius for 2 clusters
+    # for case of single cluster, check distance between the 2 radiuses
+    # if ratio of distance is under given threshold, then merge 2 clusters
+    x0 = 0
+    y0 = 0
+    r1 = 0
+    r2 = 0
+    # mean x and mean y as the initial center
+    for i in range(len(centers[i])):
+        x0 += centers[i][0]
+        y0 += centers[i][1]
+    x0 /= len(centers)
+    y0 /= len(centers)
+    # calculate the radius
+    # clusterize the set of radius into 2 groups
+    # for each group, minimizing minimize sum of |((x,y) - (x0,y0))^2 - r^2| 
+    # to solve (x0,y0,r) for each cluster
+    # then using new param to regroup all points in set
