@@ -112,6 +112,61 @@ def GetDecimal(v:str) -> float:
     else:
         return float(v) # atof_s(v)
 
+def RectInter(bb1, bb2):
+    bx1 = max(bb1[0], bb2[0])
+    by1 = max(bb1[1], bb2[1])
+    bx2 = min(bb1[0] + bb1[2], bb2[0] + bb2[2])
+    by2 = min(bb1[1] + bb1[3], bb2[1] + bb2[3])
+    if bx2 > bx1 and by2 > by1:
+        return (bx1, by1, bx2-bx1, by2-by1)
+    else:
+        return None
+
+def RectUnion(bb1, bb2):
+    bx1 = min(bb1[0], bb2[0])
+    by1 = min(bb1[1], bb2[1])
+    bx2 = max(bb1[0] + bb1[2], bb2[0] + bb2[2])
+    by2 = max(bb1[1] + bb1[3], bb2[1] + bb2[3])
+    return (bx1, by1, bx2-bx1, by2-by1)
+
+def RectArea(bb):
+    return bb[2]*bb[3]
+
+def RectSmaller(bb1, bb2):
+    if RectArea(bb1) > RectArea(bb2):
+        return bb2
+    else:
+        return bb1
+
+def RectBigger(bb1, bb2):
+    if RectArea(bb1) > RectArea(bb2):
+        return bb1
+    else:
+        return bb2
+
+def RectIou(bb1, bb2):
+    _overlap = RectInter(bb1, bb2)
+    if _overlap is None:
+        return 0
+    else:
+        return RectArea(_overlap) *1.0 / RectArea(RectSmaller(bb1, bb2))
+
+def RectMerge(bboxes, max_iou=0.3)->list:
+    is_removed = [False]*len(bboxes)
+    for i in range(len(bboxes)):
+        if is_removed[i]:
+            continue
+        for j in range(i+1, len(bboxes)):
+            if is_removed[j]:
+                continue
+            if RectIou(bboxes[i], bboxes[j]) >= max_iou:
+                # mark the smaller one as removed
+                if RectArea(bboxes[i]) > RectArea(bboxes[j]):
+                    is_removed[j] = True
+                else:
+                    is_removed[i] = True
+    return is_removed
+
 
 if __name__ == '__main__':
     tta_splits = 3
@@ -153,7 +208,7 @@ if __name__ == '__main__':
     _color  = (0,100,200)
     rec_thresh = 0.9
 
-    bboxes = []
+    quads = []
     values = []
 
     # extract all qualified recognition results
@@ -171,18 +226,38 @@ if __name__ == '__main__':
             # convert bboxes back to original coordinate
             pts = WrapAffine(pts, trans)
             # add board-ticks
-            bboxes.append(pts)
+            quads.append(pts)
             values.append(val)
             last_pt = pts[-1]
             for pt in pts:
                 cv2.line(vis, Float2Int(last_pt), Float2Int(pt), _color, 2, 8)
                 last_pt = pt
+    cv2.imshow('ocr1', vis)
+    cv2.waitKey(0)
+
+    # convert from quad to rect
+    bboxes = []
+    for pts in quads:
+        min_x = min(min(pts[0][0], pts[1][0]), min(pts[2][0], pts[3][0]))
+        max_x = max(max(pts[0][0], pts[1][0]), max(pts[2][0], pts[3][0]))
+        min_y = min(min(pts[0][1], pts[1][1]), min(pts[2][1], pts[3][1]))
+        max_y = max(max(pts[0][1], pts[1][1]), max(pts[2][1], pts[3][1]))
+        bboxes.append((min_x, min_y, max_x-min_x, max_y-min_y))
+    
     # remove duplicates or subparts
     bboxes_1 = []
     values_1 = []
-    if i in range(len(values)):
-        if bboxes_1[]
-        bboxes_1.append(bboxes[i])
-    
-    cv2.imshow('ocr', vis)
+    vis = im.copy()
+    rm_flags = RectMerge(bboxes, 0.5)
+    print('removed: %d / %d' % (np.sum(rm_flags), len(rm_flags)))
+    for i in range(len(rm_flags)):
+        if not rm_flags[i]:
+            bboxes_1.append(bboxes[i])
+            values_1.append(values[i])
+            pts = (bboxes[i][0],bboxes[i][1],bboxes[i][0]+bboxes[i][2],bboxes[i][1]+bboxes[i][3])
+            cv2.rectangle(vis, Float2Int(pts[:2]), Float2Int(pts[2:]), _color, 2, 8)
+    cv2.imshow('ocr2', vis)
     cv2.waitKey(0)
+
+    # calculate angles and group boxes
+    
