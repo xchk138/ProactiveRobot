@@ -167,8 +167,60 @@ def RectMerge(bboxes, max_iou=0.3)->list:
                     is_removed[i] = True
     return is_removed
 
+def Kmeans(points:list, group=2, max_iter=1000) -> list:
+    # check group setting
+    if group < 2:
+        return [points]
+    # check size of points, if not enough for clustering, then directly return
+    if len(points) <= group:
+        return [[pt] for pt in points]
+    # choose 2 different points for cluster centers
+    c = [points[0]]
+    for i in range(1, group):
+        all_same = True
+        for j in range(1, len(points)):
+            if points[j] not in c:
+                all_same = False
+                c += [points[j]]
+                break
+        if all_same:
+            break
+        
+
+    
+def TEST_EXPECT(r, v):
+    if r != v:
+        print('Test failed!')
+    else:
+        print('Test Okay')
+
+def TEST_Kmeans():
+    # test with single point in set
+    ts = []
+    res = Kmeans(ts, 2)
+    TEST_EXPECT(res, [])
+    ts = [1,2,3]
+    res = Kmeans(ts, 1)
+    TEST_EXPECT(res, [[1,2,3]])
+    ts = [1]
+    res = Kmeans(ts, 2)
+    TEST_EXPECT(res, [[1]])
+    ts = [1, 2]
+    res = Kmeans(ts, 2)
+    TEST_EXPECT(res, [[1],[2]])
+    ts = [1, 2, 5]
+    res = Kmeans(ts, 2)
+    TEST_EXPECT(res, [[1,2],[5]])
+    ts = [1,2, 5,7,9]
+    res = Kmeans(ts, 2)
+    TEST_EXPECT(res, [[1,2],[5,7,9]])
 
 if __name__ == '__main__':
+
+    # running test cases
+    TEST_Kmeans()
+    exit(0)
+
     tta_splits = 3
     # test image
     im_path = "t1.png"
@@ -285,7 +337,7 @@ if __name__ == '__main__':
     for i in range(len(centers)):
         dis += [np.sqrt((centers[i][0] - x0)^2 + (centers[i][1] - y0)^2)]
     # clusterize the set of distance into 2 groups using Kmeans(Estimate-Minimizing)
-    
+    sets = Kmeans(dis, group=2, max_iter=1000)
     # for each group, minimizing minimize sum of |((x,y) - (x0,y0))^2 - r^2| 
     # to solve (x0,y0,r) for each cluster
     # then using new param to regroup all points in set
