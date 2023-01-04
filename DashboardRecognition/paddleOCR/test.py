@@ -167,59 +167,113 @@ def RectMerge(bboxes, max_iou=0.3)->list:
                     is_removed[i] = True
     return is_removed
 
-def Kmeans(points:list, group=2, max_iter=1000) -> list:
+def norm_L1(d):
+            return np.abs(d)
+def calc_dist(p, c):
+    return np.sum(norm_L1(p-c))
+
+def Kmeans(points:list, group=2, min_move=1.0, max_iter=30) -> list:
     # check group setting
     if group < 2:
-        return [points]
+        return [[i for i in range(len(points))]]
     # check size of points, if not enough for clustering, then directly return
     if len(points) <= group:
-        return [[pt] for pt in points]
-    # choose 2 different points for cluster centers
-    c = [points[0]]
+        return [[i] for i in range(len(points))]
+    # choose different points for cluster centers
+    centers = [points[0]]
     for i in range(1, group):
         all_same = True
         for j in range(1, len(points)):
-            if points[j] not in c:
+            if points[j] not in centers:
                 all_same = False
-                c += [points[j]]
+                centers += [points[j]]
                 break
         if all_same:
+            group = i
             break
-        
-
     
-def TEST_EXPECT(r, v):
-    if r != v:
-        print('Test failed!')
+    # iteration begin
+    centers = np.array(centers)
+    centers_last = centers.copy()
+    for itr in range(max_iter):
+        # update clusters using centers 
+        assert len(centers) == group
+        clusters = [[] for _ in range(group)] # store indexes of points
+        for i in range(len(points)):
+            dists = [calc_dist(points[i], c) for c in centers]
+            id = np.argmin(dists)
+            clusters[id] += [i]
+        # the EM(expectation-maximization algorithm)
+        # update centers of clusters
+        assert len(clusters) == len(centers)
+        for i in range(len(clusters)):
+            c_new = None
+            if type(points[0]) == int or type(points[0])==float: # points are scalars
+                c_new = 0
+            else: # points are vectors
+                c_new = np.zeros_like(points[0])
+            for id in clusters[i]:
+                c_new = c_new + np.array(points[id])
+            c_new = c_new / len(clusters[i])
+            centers[i] = c_new
+        # check stop condition: center movement 
+        _move = np.max(np.sqrt(np.sum(np.square(centers_last - centers), axis=-1)))
+        print('kmeans itr# %d with center move: %.3f' % (itr, _move))
+        if _move <  min_move:
+            print('kmeans converged')
+            break
+        centers_last = centers.copy()
+    return clusters
+    
+def EXPECT_EQ(r, e, tname): # r is real value, e is expected value
+    if r != e:
+        print('[%s] Test failed' % tname)
     else:
-        print('Test Okay')
+        print('[%s] Test pass' % tname)
+
+def EXPECT_EQ_SET(r, e, tname): # r is real set, e is expected set
+    for rr in r:
+        if rr not in e:
+            print('[%s] Test failed' % tname)
+    for ee in e:
+        if ee not in r:
+            print('[%s] Test failed' % tname)
+    print('[%s] Test pass' % tname)
+
+def EXPECT_IN(r, e, tname):
+    for ee in e:
+        if r == ee:
+            print('[%s] Test pass' % tname)
+            break
+    print('[%s] Test failed' % tname)
 
 def TEST_Kmeans():
     # test with single point in set
     ts = []
     res = Kmeans(ts, 2)
-    TEST_EXPECT(res, [])
+    EXPECT_EQ(res, [], 'T1')
     ts = [1,2,3]
     res = Kmeans(ts, 1)
-    TEST_EXPECT(res, [[1,2,3]])
+    EXPECT_EQ(res, [[0,1,2]], 'T2')
     ts = [1]
     res = Kmeans(ts, 2)
-    TEST_EXPECT(res, [[1]])
+    EXPECT_EQ(res, [[0]], 'T3')
     ts = [1, 2]
     res = Kmeans(ts, 2)
-    TEST_EXPECT(res, [[1],[2]])
-    ts = [1, 2, 5]
+    EXPECT_EQ_SET(res, [[0],[1]], 'T4')
+    ts = [1.2, 2.3, 5.6]
     res = Kmeans(ts, 2)
-    TEST_EXPECT(res, [[1,2],[5]])
-    ts = [1,2, 5,7,9]
+    EXPECT_EQ_SET(res, [[0,1],[2]], 'T5')
+    ts = [7,5,1,2,9]
     res = Kmeans(ts, 2)
-    TEST_EXPECT(res, [[1,2],[5,7,9]])
+    EXPECT_EQ_SET(res, [[2,3],[0,1,4]], 'T6')
 
 if __name__ == '__main__':
-
-    # running test cases
-    TEST_Kmeans()
-    exit(0)
+    _TEST_MODE_ = False
+    if _TEST_MODE_:
+        # running test cases
+        TEST_Kmeans()
+        exit(0)
 
     tta_splits = 3
     # test image
@@ -234,8 +288,7 @@ if __name__ == '__main__':
         cls_thresh=0.9,
         det_db_thresh=0.3,
         det_box_type='quad',
-        show_log=False
-        )
+        show_log=False)
 
     im = cv2.imread(im_path)
     # preprocess the image
@@ -335,10 +388,11 @@ if __name__ == '__main__':
     # calculate all distances
     dis = []
     for i in range(len(centers)):
-        dis += [np.sqrt((centers[i][0] - x0)^2 + (centers[i][1] - y0)^2)]
+        dis += [np.sqrt((centers[i][0] - x0)*(centers[i][0] - x0) + (centers[i][1] - y0)*(centers[i][1] - y0))]
     # clusterize the set of distance into 2 groups using Kmeans(Estimate-Minimizing)
     sets = Kmeans(dis, group=2, max_iter=1000)
+    print(sets)
     # for each group, minimizing minimize sum of |((x,y) - (x0,y0))^2 - r^2| 
     # to solve (x0,y0,r) for each cluster
     # then using new param to regroup all points in set
-    
+    for i in range(len())
