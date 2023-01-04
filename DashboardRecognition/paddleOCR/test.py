@@ -275,13 +275,18 @@ if __name__ == '__main__':
     r1 = 0
     r2 = 0
     # mean x and mean y as the initial center
-    for i in range(len(centers[i])):
+    for i in range(len(centers)):
         x0 += centers[i][0]
         y0 += centers[i][1]
     x0 /= len(centers)
     y0 /= len(centers)
-    # calculate the radius
-    # clusterize the set of radius into 2 groups
+    # calculate all distances
+    dis = []
+    for i in range(len(centers)):
+        dis += [np.sqrt((centers[i][0] - x0)^2 + (centers[i][1] - y0)^2)]
+    # clusterize the set of distance into 2 groups using Kmeans(Estimate-Minimizing)
+    
     # for each group, minimizing minimize sum of |((x,y) - (x0,y0))^2 - r^2| 
     # to solve (x0,y0,r) for each cluster
     # then using new param to regroup all points in set
+    
