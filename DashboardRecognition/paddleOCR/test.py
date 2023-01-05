@@ -366,9 +366,9 @@ if __name__ == '__main__':
 
     # solve the center coordinates
     # calculate the centers for each boxes
-    centers = []
+    pts = []
     for i in range(len(bboxes_1)):
-        centers += [(bboxes_1[i][0] + bboxes_1[i][2]/2.0, bboxes_1[i][1] + bboxes_1[i][3]/2.0)]
+        pts += [(bboxes_1[i][0] + bboxes_1[i][2]/2.0, bboxes_1[i][1] + bboxes_1[i][3]/2.0)]
     # param (x0,y0,r), for all (x,y), minimize sum of |((x,y) - (x0,y0))^2 - r^2|
     # consider 2 groups of bboxes
     # using KMeans algorithm to solve two cluster settings
@@ -378,35 +378,60 @@ if __name__ == '__main__':
     x0 = 0
     y0 = 0
     # mean x and mean y as the initial center
-    for i in range(len(centers)):
-        x0 += centers[i][0]
-        y0 += centers[i][1]
-    x0 /= len(centers)
-    y0 /= len(centers)
-    # calculate all distances
-    dis = []
-    for i in range(len(centers)):
-        dis += [np.sqrt((centers[i][0] - x0)*(centers[i][0] - x0) + (centers[i][1] - y0)*(centers[i][1] - y0))]
-    # clusterize the set of distance into 2 groups using Kmeans(Estimate-Minimizing)
-    clusters = Kmeans(dis, group=2, max_iter=30) # max cluster number is set to $group
-    print(clusters)
-    # for each group, minimizing sum of |((x,y) - (x0,y0))^2 - r^2| 
-    # to solve this minimization problem, we convert it to linear solution as follow:
-    # W = (A^T*A)^{-1}*A^T*C
-    # where, W = [x_0, y_0, r_0^2-x_0^2-y_0^2]^T, to be solved thru matrix ops
-    # A = [[2x_1,2y_1,1],[2x_2,2y_2,1],[2x_3,2y_3,1],...]
-    # C = [x_1^2+y_1^2,x_2^2+y_2^2,...]
-    # where, <x_i, y_i> are sampled points of <x,y> from cluster.
-    # to solve (x0,y0,r) for each cluster, we apply such procedures,
-    rads = []
-    centers = np.array(centers)
-    for clu in clusters:
-        v_x = centers[clu,0]
-        v_y = centers[clu,1]
-        A = np.stack([2.0*v_x, 2.0*v_y, np.ones_like(v_x)], axis=0).T
-        C = (v_x*v_x + v_y*v_y)
-
-
-    # then using new param to regroup all points in set
-    
-    for i in range(len())
+    for i in range(len(pts)):
+        x0 += pts[i][0]
+        y0 += pts[i][1]
+    x0 /= len(pts)
+    y0 /= len(pts)
+    centers = [(x0, y0)]
+    # iterate to solve center and radius
+    MAX_ITER = 30
+    for i in range(MAX_ITER):
+        # calculate all distances
+        dis = []
+        for i in range(len(pts)):
+            dis += [np.sqrt((pts[i][0] - centers[0][0])*(pts[i][0] - centers[0][0]) + (pts[i][1] - centers[0][1])*(pts[i][1] - centers[0][1]))]
+        # clusterize the set of distance into 2 groups using Kmeans(Estimate-Minimizing)
+        clusters = Kmeans(dis, group=2, max_iter=30) # max cluster number is set to $group
+        print(clusters)
+        # for each group, minimizing sum of |((x,y) - (x0,y0))^2 - r^2| 
+        # to solve this minimization problem, we convert it to linear solution as follow:
+        # W = (A^T*A)^{-1}*A^T*C
+        # where, W = [x_0, y_0, r_0^2-x_0^2-y_0^2]^T, to be solved thru matrix ops
+        # A = [[2x_1,2y_1,1],[2x_2,2y_2,1],[2x_3,2y_3,1],...]
+        # C = [x_1^2+y_1^2,x_2^2+y_2^2,...]
+        # where, <x_i, y_i> are sampled points of <x,y> from cluster.
+        # to solve (x0,y0,r) for each cluster, we apply such procedures,
+        centers_last = np.array(centers)
+        centers = []
+        rads = []
+        pts = np.array(pts)
+        vis = im.copy()
+        for clu in clusters:
+            v_x = pts[clu,0]
+            v_y = pts[clu,1]
+            A = np.stack([2.0*v_x, 2.0*v_y, np.ones_like(v_x)], axis=0).T
+            C = (v_x*v_x + v_y*v_y).T
+            _st, iATA = cv2.invert(A.T@A)
+            assert _st > 0
+            # iATA = np.linalg.inv(A.T@A)
+            W = iATA @ A.T @ C
+            x0 = W[0]
+            y0 = W[1]
+            assert W[2] + (x0*x0 + y0*y0) > 0
+            r0 = np.sqrt(W[2] + (x0*x0 + y0*y0))
+            cv2.circle(vis, (int(x0),int(y0)), int(r0), _color, 2)
+            rads += [r0]
+            centers += [(x0, y0)]
+        cv2.imshow('centers solved', vis)
+        cv2.waitKey(0)
+        # check if two radius are close enough, if yes then merge them
+        if len(rads) > 1 and np.abs(rads[0] - rads[1]) / np.max(rads) < 0.18:
+            rads = [(rads[0] + rads[1])/2.0]
+        # check if center is stable to prove converge
+        centers = np.array(centers)
+        centers = np.array([(centers[0] + centers[1])/2.0])
+        c_mov = np.sqrt(np.sum(np.square(centers - centers_last)))
+        if c_mov < np.max(rads) * 0.05:
+            print('center movement converged!')
+            break
