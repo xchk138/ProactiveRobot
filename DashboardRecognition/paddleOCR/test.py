@@ -386,7 +386,7 @@ if __name__ == '__main__':
     centers = [(x0, y0)]
     # iterate to solve center and radius
     MAX_ITER = 30
-    for i in range(MAX_ITER):
+    for itr in range(MAX_ITER):
         # calculate all distances
         dis = []
         for i in range(len(pts)):
@@ -426,12 +426,27 @@ if __name__ == '__main__':
         cv2.imshow('centers solved', vis)
         cv2.waitKey(0)
         # check if two radius are close enough, if yes then merge them
-        if len(rads) > 1 and np.abs(rads[0] - rads[1]) / np.max(rads) < 0.18:
+        if len(rads) == 2 and np.abs(rads[0] - rads[1]) / np.max(rads) < 0.18:
             rads = [(rads[0] + rads[1])/2.0]
+            clusters = [clusters[0] + clusters[1]]
         # check if center is stable to prove converge
         centers = np.array(centers)
         centers = np.array([(centers[0] + centers[1])/2.0])
         c_mov = np.sqrt(np.sum(np.square(centers - centers_last)))
+        print('EM itr#%d with center shift: %.3f' % (itr, c_mov))
         if c_mov < np.max(rads) * 0.05:
             print('center movement converged!')
             break
+    print('final cluster result:')
+    print('center: (%d, %d)' % (int(centers[0][0]), int(centers[0][1])))
+    print('cluster:' + str(clusters))
+    # visualize the boxes for each board-tick axis
+    vis = im.copy()
+    colors = [(0,0,255), (255, 0, 0), (0, 255, 0)]
+    cv2.circle(vis, (int(x0),int(y0)), 30, colors[-1], 2)
+    for k in range(len(clusters)):
+        for i in clusters[k]:
+            pts = (bboxes_1[i][0],bboxes_1[i][1],bboxes_1[i][0]+bboxes_1[i][2],bboxes_1[i][1]+bboxes_1[i][3])
+            cv2.rectangle(vis, Float2Int(pts[:2]), Float2Int(pts[2:]), colors[k], 2, 8)
+    cv2.imshow('cluster result', vis)
+    cv2.waitKey(0)
