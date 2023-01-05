@@ -377,8 +377,6 @@ if __name__ == '__main__':
     # if ratio of distance is under given threshold, then merge 2 clusters
     x0 = 0
     y0 = 0
-    r1 = 0
-    r2 = 0
     # mean x and mean y as the initial center
     for i in range(len(centers)):
         x0 += centers[i][0]
@@ -390,9 +388,25 @@ if __name__ == '__main__':
     for i in range(len(centers)):
         dis += [np.sqrt((centers[i][0] - x0)*(centers[i][0] - x0) + (centers[i][1] - y0)*(centers[i][1] - y0))]
     # clusterize the set of distance into 2 groups using Kmeans(Estimate-Minimizing)
-    sets = Kmeans(dis, group=2, max_iter=1000)
-    print(sets)
-    # for each group, minimizing minimize sum of |((x,y) - (x0,y0))^2 - r^2| 
-    # to solve (x0,y0,r) for each cluster
+    clusters = Kmeans(dis, group=2, max_iter=30) # max cluster number is set to $group
+    print(clusters)
+    # for each group, minimizing sum of |((x,y) - (x0,y0))^2 - r^2| 
+    # to solve this minimization problem, we convert it to linear solution as follow:
+    # W = (A^T*A)^{-1}*A^T*C
+    # where, W = [x_0, y_0, r_0^2-x_0^2-y_0^2]^T, to be solved thru matrix ops
+    # A = [[2x_1,2y_1,1],[2x_2,2y_2,1],[2x_3,2y_3,1],...]
+    # C = [x_1^2+y_1^2,x_2^2+y_2^2,...]
+    # where, <x_i, y_i> are sampled points of <x,y> from cluster.
+    # to solve (x0,y0,r) for each cluster, we apply such procedures,
+    rads = []
+    centers = np.array(centers)
+    for clu in clusters:
+        v_x = centers[clu,0]
+        v_y = centers[clu,1]
+        A = np.stack([2.0*v_x, 2.0*v_y, np.ones_like(v_x)], axis=0).T
+        C = (v_x*v_x + v_y*v_y)
+
+
     # then using new param to regroup all points in set
+    
     for i in range(len())

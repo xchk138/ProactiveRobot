@@ -358,6 +358,3 @@ class YoloDetector(object):
         bboxes, labels, objects, obj_num = YoloDetector.pair_objects(bboxes, labels)
         print('found %d objects' % obj_num)
         return bboxes, labels, objects
-                
-
-
