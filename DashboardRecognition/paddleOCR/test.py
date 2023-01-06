@@ -53,7 +53,7 @@ def Smooth(im:np.ndarray)->np.ndarray:
 
 def Binarize(im:np.ndarray)->np.ndarray:
     im = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-    return 255 - cv2.adaptiveThreshold(im, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, blockSize=9, C=20)
+    return 255 - cv2.adaptiveThreshold(im, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, blockSize=9, C=15)
 
 def WrapAffine(pts:np.ndarray, trans:np.ndarray):
     pts_new = []
@@ -392,8 +392,17 @@ if __name__ == '__main__':
         for i in range(len(pts)):
             dis += [np.sqrt((pts[i][0] - centers[0][0])*(pts[i][0] - centers[0][0]) + (pts[i][1] - centers[0][1])*(pts[i][1] - centers[0][1]))]
         # clusterize the set of distance into 2 groups using Kmeans(Estimate-Minimizing)
-        clusters = Kmeans(dis, group=2, max_iter=30) # max cluster number is set to $group
+        clusters = []
+        if len(pts) >= 3: # locate a center requires at least 3 points 
+            clusters = Kmeans(dis, group=2, max_iter=30) # max cluster number is set to $group
+        else:
+            print('total points are insufficient, task canclled!')
+            exit(0)
         print(clusters)
+        # remove cluster without enough points
+        if len(clusters)==2 and (len(clusters[0]) < 3 or len(clusters[1]) < 3):
+            print('points in one cluster are insufficient, cluster merged!')
+            clusters = [clusters[0] + clusters[1]]
         # for each group, minimizing sum of |((x,y) - (x0,y0))^2 - r^2| 
         # to solve this minimization problem, we convert it to linear solution as follow:
         # W = (A^T*A)^{-1}*A^T*C
@@ -431,7 +440,8 @@ if __name__ == '__main__':
             clusters = [clusters[0] + clusters[1]]
         # check if center is stable to prove converge
         centers = np.array(centers)
-        centers = np.array([(centers[0] + centers[1])/2.0])
+        if len(centers) == 2:
+            centers = np.array([(centers[0] + centers[1])/2.0])
         c_mov = np.sqrt(np.sum(np.square(centers - centers_last)))
         print('EM itr#%d with center shift: %.3f' % (itr, c_mov))
         if c_mov < np.max(rads) * 0.05:
@@ -440,13 +450,39 @@ if __name__ == '__main__':
     print('final cluster result:')
     print('center: (%d, %d)' % (int(centers[0][0]), int(centers[0][1])))
     print('cluster:' + str(clusters))
+    print('values:')
+    print(np.array(values_1)[clusters[0]])
+    if len(clusters) > 1:
+        print(np.array(values_1)[clusters[1]])
     # visualize the boxes for each board-tick axis
     vis = im.copy()
     colors = [(0,0,255), (255, 0, 0), (0, 255, 0)]
     cv2.circle(vis, (int(x0),int(y0)), 30, colors[-1], 2)
     for k in range(len(clusters)):
         for i in clusters[k]:
-            pts = (bboxes_1[i][0],bboxes_1[i][1],bboxes_1[i][0]+bboxes_1[i][2],bboxes_1[i][1]+bboxes_1[i][3])
-            cv2.rectangle(vis, Float2Int(pts[:2]), Float2Int(pts[2:]), colors[k], 2, 8)
+            _pts = (bboxes_1[i][0],bboxes_1[i][1],bboxes_1[i][0]+bboxes_1[i][2],bboxes_1[i][1]+bboxes_1[i][3])
+            cv2.rectangle(vis, Float2Int(_pts[:2]), Float2Int(_pts[2:]), colors[k], 2, 8)
     cv2.imshow('cluster result', vis)
     cv2.waitKey(0)
+    # =============== modeling angles and values ================
+    # get angles
+    angles = []
+    values = []
+    rm_flags = [False for _ in pts]
+    for i in range(len(clusters)):
+        for id in clusters[i]:
+            vec = np.array(pts[id]) - np.array(centers[0])
+            dis = norm_L1(vec)
+            if dis < rads[i]*0.3: # too close ignore this point
+                rm_flags[id] = True
+            vec = vec / dis # normalized vector is unit vector
+            ang = np.arccos(vec[0])
+            if vec[1] < 0: # y < 0
+                ang = 2*np.pi - ang
+            angles += [ang]
+    # remove bad points acoording to the fact: values are monotonous to the angles
+    
+    # model is Y = kX + b
+    # X is angle, Y is the value recognized(may be wrong)
+    # calculating the linearity coefficient R,
+    # check if linear model is satisfied, otherwise using staged linear model
