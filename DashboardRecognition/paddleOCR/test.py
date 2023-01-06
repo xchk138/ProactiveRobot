@@ -168,9 +168,13 @@ def RectMerge(bboxes, max_iou=0.3)->list:
     return is_removed
 
 def norm_L1(d):
-            return np.abs(d)
+    return np.mean(np.abs(d))
+
+def norm_L2(d):
+    return np.sqrt(np.sum(np.square(d)))
+
 def calc_dist(p, c):
-    return np.sum(norm_L1(p-c))
+    return np.sum(np.abs(p-c))
 
 def Kmeans(points:list, group=2, min_move=1.0, max_iter=30) -> list:
     # check group setting
@@ -466,21 +470,42 @@ if __name__ == '__main__':
     cv2.waitKey(0)
     # =============== modeling angles and values ================
     # get angles
-    angles = []
-    values = []
-    rm_flags = [False for _ in pts]
+    angles = [[] for _ in range(len(clusters))]
+    values = [[] for _ in range(len(clusters))]
+    clusters_new = [[] for _ in range(len(clusters))]
     for i in range(len(clusters)):
         for id in clusters[i]:
             vec = np.array(pts[id]) - np.array(centers[0])
-            dis = norm_L1(vec)
-            if dis < rads[i]*0.3: # too close ignore this point
-                rm_flags[id] = True
-            vec = vec / dis # normalized vector is unit vector
-            ang = np.arccos(vec[0])
-            if vec[1] < 0: # y < 0
-                ang = 2*np.pi - ang
-            angles += [ang]
+            dis = norm_L2(vec)
+            if dis > rads[i]*0.3: # too close ignore this point
+                clusters_new[i] += [id]
+                vec = vec / dis # normalized vector is unit vector
+                ang = np.arccos(vec[0])
+                if vec[1] < 0: # y < 0
+                    ang = 2*np.pi - ang
+                angles[i] += [ang]
+                values[i] += [values_1[id]]
+    # sort angles, and calc gradients of values for every 2 pair points in neighborhood
+    for i in range(len(clusters)):
+        print('======Ring #%d======'%i)
+        #comp = [(id, angles[i][id]) for id in range(len(angles[i]))]
+        comp = enumerate(angles[i])
+        comp = sorted(comp, key=lambda x:x[1], reverse=False)
+        #print(comp)
+        _ids = [comp[_id][0] for _id in range(len(comp))]
+        _angs = [comp[_id][1] for _id in range(len(comp))] 
+        _vals = np.array(values[i])[_ids]
+        print('ids:')
+        print(_ids)
+        print('angles:')
+        print(_angs)
+        print('values:')
+        print(_vals)
+        grads = []
+        # find the cross-zero point of angles, the breaking point
+        
     # remove bad points acoording to the fact: values are monotonous to the angles
+
     
     # model is Y = kX + b
     # X is angle, Y is the value recognized(may be wrong)
