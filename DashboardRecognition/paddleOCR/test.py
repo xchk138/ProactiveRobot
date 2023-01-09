@@ -501,7 +501,7 @@ if __name__ == '__main__':
         # print(_angs)
         # print('values:')
         # print(_vals)
-        # find the cross-zero point of angles, the origin of the board-ring
+        # find the origin of the board-ring
         # to minimize the disorder of value grads
         num_disorders = []
         num_total = len(_vals)
@@ -509,12 +509,14 @@ if __name__ == '__main__':
             num_positive = 0
             num_negative = 0
             for offset in range(1, num_total):
-                pos = start_pos + offset
-                _grad = _vals[pos % num_total] - _vals[(pos-1)%num_total]
-                if _grad > 0:
-                    num_positive += 1
-                elif _grad < 0:
-                    num_negative += 1
+                pos = (start_pos + offset)%num_total
+                for k in range(offset):
+                    pos_ahead = (start_pos + k) % num_total
+                    _grad = _vals[pos] - _vals[pos_ahead]
+                    if _grad > 0:
+                        num_positive += 1
+                    elif _grad < 0:
+                        num_negative += 1
             num_disorders += [min(num_positive, num_negative)]
         min_disorder_id = np.argmin(num_disorders)
         print(min_disorder_id)
