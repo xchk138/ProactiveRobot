@@ -480,6 +480,7 @@ if __name__ == '__main__':
             if dis > rads[i]*0.3: # too close ignore this point
                 clusters_new[i] += [id]
                 vec = vec / dis # normalized vector is unit vector
+                vec[1] = -vec[1]
                 ang = np.arccos(vec[0])
                 if vec[1] < 0: # y < 0
                     ang = 2*np.pi - ang
@@ -489,20 +490,45 @@ if __name__ == '__main__':
     for i in range(len(clusters)):
         print('======Ring #%d======'%i)
         #comp = [(id, angles[i][id]) for id in range(len(angles[i]))]
-        comp = enumerate(angles[i])
-        comp = sorted(comp, key=lambda x:x[1], reverse=False)
+        comp = sorted(enumerate(angles[i]), key=lambda x:x[1], reverse=False)
         #print(comp)
         _ids = [comp[_id][0] for _id in range(len(comp))]
         _angs = [comp[_id][1] for _id in range(len(comp))] 
         _vals = np.array(values[i])[_ids]
+        # print('ids:')
+        # print(_ids)
+        # print('angles:')
+        # print(_angs)
+        # print('values:')
+        # print(_vals)
+        # find the cross-zero point of angles, the origin of the board-ring
+        # to minimize the disorder of value grads
+        num_disorders = []
+        num_total = len(_vals)
+        for start_pos in range(num_total):
+            num_positive = 0
+            num_negative = 0
+            for offset in range(1, num_total):
+                pos = start_pos + offset
+                _grad = _vals[pos % num_total] - _vals[(pos-1)%num_total]
+                if _grad > 0:
+                    num_positive += 1
+                elif _grad < 0:
+                    num_negative += 1
+            num_disorders += [min(num_positive, num_negative)]
+        min_disorder_id = np.argmin(num_disorders)
+        print(min_disorder_id)
+        # rearrange the points in a ring
+        map_ids = [(_i + min_disorder_id)%num_total for _i in range(num_total)]
+        _ids = [_ids[map_ids[_i]] for _i in range(num_total)]
+        _angs = [_angs[map_ids[_i]] for _i in range(num_total)]
+        _vals = [_vals[map_ids[_i]] for _i in range(num_total)]
         print('ids:')
         print(_ids)
         print('angles:')
         print(_angs)
         print('values:')
         print(_vals)
-        grads = []
-        # find the cross-zero point of angles, the breaking point
         
     # remove bad points acoording to the fact: values are monotonous to the angles
 
