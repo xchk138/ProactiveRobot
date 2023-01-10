@@ -6,6 +6,99 @@ print(np.__version__)
 import cv2
 print(cv2.__version__)
 
+
+def CompSort(x:list, sort_dim=0, ascending=False)->list:
+    assert type(x) == list
+    if type(x[0]) == tuple:
+        v = [(i, x[i][sort_dim]) for i in range(len(x))]
+    else:
+        v = enumerate(x)
+    comp = sorted(v, key=lambda e:e[1], reverse=ascending)
+    map_ids = [comp[i][0] for i in range(len(comp))]
+    y = [x[id] for id in map_ids]
+    return y
+
+
+class StagedLinearFunction(object):
+    def __init__(self, x:np.ndarray, y:np.ndarray) -> None:
+        # model is Y = kX + b
+        # X is angle, Y is the value recognized(may be wrong)
+        # calculating the linearity coefficient R,
+        # check if linear model is satisfied, otherwise using staged linear model
+        # variable x and y
+        if type(x) == list:
+            var_x = np.array(x)
+        else:
+            var_x = x
+        if type(y) == list:
+            var_y = np.array(y)
+        else:
+            var_y = y
+        # get average of variable x
+        mean_x = var_x.mean()
+        mean_y = var_y.mean()
+        # cross variance of X and Y
+        var_XY = np.sum((var_x - mean_x)*(var_y - mean_y))
+        # self variance of X
+        var_XX = np.sum((var_x - mean_x)*(var_x - mean_x))
+        # self variance of Y
+        var_YY = np.sum((var_y - mean_y)*(var_y - mean_y))
+        # calculate linear coefficient
+        lin_coef = var_XY / np.sqrt(var_XX*var_YY)
+        print('Linear coefficient: %.3f' % lin_coef)
+        if abs(lin_coef) >= 0.9:
+            self.num_stages = 0
+            self.stages = []
+            # calculating the parameter for linear equation y=Bx+A
+            pB = var_XY / var_XX
+            pA = mean_y - mean_x * pB 
+            self.params = [(pA, pB)]
+        else:
+            self.num_stages = 0
+            self.params = []
+            # merge all variables into samples
+            samples = [(x[id], y[id]) for id in range(len(x))]
+            # sort according to the specified dimension: angles
+            samples_sorted = CompSort(samples, sort_dim=0)
+            # split sorted samples into sorted variables
+            x = [samples_sorted[id][0] for id in range(len(samples_sorted))] 
+            y = [samples_sorted[id][1] for id in range(len(samples_sorted))]
+            self.stages = [x[0]]
+            last_x = x[0]
+            last_y = y[0]
+            for i in range(1, len(x)):
+                if x[i] - last_x > 1e-5:
+                    pB = (y[i] - last_y) / (x[i] - last_x) 
+                    pA = last_y
+                    self.params += [(pA, pB)]
+                    last_x = x[i]
+                    last_y = y[i]
+                    self.stages += [x[i]]
+                    self.num_stages += 1
+            print('number of stages: %d' % self.num_stages)
+            print('staged linear function params: ')
+            print(self.params)
+    def __call__(self, x):
+        if self.num_stages > 0:
+            stage_id = -1
+            for i in range(len(self.stages)):
+                if x < self.stages[i]:
+                    break
+                stage_id += 1
+            if stage_id < 0: # range (-inf, stagess[0])
+                print('warning: call staged linear function out of range!')
+                stage_id = 0
+            elif stage_id >= self.num_stages: # range (stages[-1], +inf)
+                print('warning: call staged linear function out of range!')
+                stage_id = self.num_stages - 1
+            else:
+                print('hit stage: %d' % stage_id)
+            # apply the linear model according to stage index
+            return self.params[stage_id][0] + (x - self.stages[stage_id]) * self.params[stage_id][1]
+        else: # single linear equation without stages
+            return self.params[0][0] + x * self.params[0][1]
+            
+
 def Float2Int(x):
     return tuple([int(e) for e in x])
 
@@ -308,7 +401,7 @@ if __name__ == '__main__':
 
     tta_splits = 3
     # test image
-    im_path = "t1.png"
+    im_path = "t2.png"
     ocr = PaddleOCR(
         lang="en",
         det_model_dir='pretrained/det/en_PP-OCRv3_det_infer',
@@ -516,18 +609,13 @@ if __name__ == '__main__':
     # sort angles, and calc gradients of values for every 2 pair points in neighborhood
     for i in range(len(clusters)):
         print('======Ring #%d======'%i)
-        #comp = [(id, angles[i][id]) for id in range(len(angles[i]))]
-        comp = sorted(enumerate(angles[i]), key=lambda x:x[1], reverse=False)
-        #print(comp)
-        _ids = [comp[_id][0] for _id in range(len(comp))]
-        _angs = [comp[_id][1] for _id in range(len(comp))] 
-        _vals = np.array(values[i])[_ids]
-        # print('ids:')
-        # print(_ids)
-        # print('angles:')
-        # print(_angs)
-        # print('values:')
-        # print(_vals)
+        # merge all variables into samples
+        samples = [(angles[i][id], values[i][id]) for id in range(len(angles[i]))]
+        # sort according to the specified dimension: angles
+        samples_sorted = CompSort(samples, 0)
+        # split sorted samples into sorted variables
+        _angs = [samples_sorted[id][0] for id in range(len(samples_sorted))] 
+        _vals = [samples_sorted[id][1] for id in range(len(samples_sorted))]
         # find the origin of the board-ring
         # to minimize the disorder of values
         num_disorders = [CountDisorder(RingShift(_vals, _shift)) for _shift in range(len(_vals))]
@@ -535,15 +623,16 @@ if __name__ == '__main__':
         print('shift from: %d ' % min_disorder_id)
         # rearrange the points in a ring
         map_ids = RingShift(list(np.arange(len(_vals))), min_disorder_id)
-        _ids = [_ids[_id] for _id in map_ids]
         _angs = [_angs[_id] for _id in map_ids]
         _vals = [_vals[_id] for _id in map_ids]
-        print('ids:')
-        print(_ids)
         print('angles:')
         print(_angs)
         print('values:')
         print(_vals)
+        ####### remap angles according to new angle origin ######
+        _angs = [_a - _angs[0] if _a >= _angs[0] else 2.*np.pi + _a - _angs[0] for _a in _angs]
+        print('angles updated: ')
+        print(_angs)
         # remove bad points acoording to the fact: values are monotonous to the angles
         # A greedy algorithm: each time remove the very point which bring the most disorder untill no disorder is found
         # check remained point volume, if insufficient, then this is a bad prediction
@@ -552,13 +641,15 @@ if __name__ == '__main__':
             min_disorder_id = np.argmin(num_disorders)
             print(num_disorders)
             print('remove element at: %d ' % min_disorder_id)
-            _ids = _ids[:min_disorder_id] + _ids[min_disorder_id+1:]
             _angs = _angs[:min_disorder_id] + _angs[min_disorder_id+1:]
             _vals = _vals[:min_disorder_id] + _vals[min_disorder_id+1:]
         print('the final values: ')
         print(_vals)
-        # model is Y = kX + b
-        # X is angle, Y is the value recognized(may be wrong)
-        # calculating the linearity coefficient R,
-        # check if linear model is satisfied, otherwise using staged linear model
-        lin_coef = 
+        # check if points are sufficient for linear modeling
+        assert len(_vals) >= 2
+        # get staged linear function
+        linear_func = StagedLinearFunction(_angs, _vals)
+        # a demo call
+        preds = [linear_func(_angs[_id] + 0.01) for _id in range(len(_angs))]
+        print(preds)
+        print(_vals)
