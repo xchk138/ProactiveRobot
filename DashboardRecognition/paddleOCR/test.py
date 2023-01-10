@@ -272,6 +272,33 @@ def TEST_Kmeans():
     res = Kmeans(ts, 2)
     EXPECT_EQ_SET(res, [[2,3],[0,1,4]], 'T6')
 
+
+def RingShift(x:list, pos:int):
+    if type(x) == np.ndarray:
+        _x = x.tolist()
+    else:
+        _x = x
+    _x = _x[pos:] + _x[:pos]
+    if type(x) == np.ndarray:
+        return np.array(_x)
+    else:
+        return _x
+
+def CountDisorder(x:np.ndarray)->int:
+    num_pos = 0
+    num_neg = 0
+    if type(x) == list:
+        _x = np.array(x)
+    else:
+        _x = x
+    for i in range(1,len(x)):
+        num_pos += np.sum((_x[i] - _x[:i]) > 0)
+        num_neg += np.sum((_x[i] - _x[:i]) < 0)
+    return min(num_pos, num_neg)
+
+
+
+
 if __name__ == '__main__':
     _TEST_MODE_ = False
     if _TEST_MODE_:
@@ -502,40 +529,36 @@ if __name__ == '__main__':
         # print('values:')
         # print(_vals)
         # find the origin of the board-ring
-        # to minimize the disorder of value grads
-        num_disorders = []
-        num_total = len(_vals)
-        for start_pos in range(num_total):
-            num_positive = 0
-            num_negative = 0
-            for offset in range(1, num_total):
-                pos = (start_pos + offset)%num_total
-                for k in range(offset):
-                    pos_ahead = (start_pos + k) % num_total
-                    _grad = _vals[pos] - _vals[pos_ahead]
-                    if _grad > 0:
-                        num_positive += 1
-                    elif _grad < 0:
-                        num_negative += 1
-            num_disorders += [min(num_positive, num_negative)]
+        # to minimize the disorder of values
+        num_disorders = [CountDisorder(RingShift(_vals, _shift)) for _shift in range(len(_vals))]
         min_disorder_id = np.argmin(num_disorders)
-        print(min_disorder_id)
+        print('shift from: %d ' % min_disorder_id)
         # rearrange the points in a ring
-        map_ids = [(_i + min_disorder_id)%num_total for _i in range(num_total)]
-        _ids = [_ids[map_ids[_i]] for _i in range(num_total)]
-        _angs = [_angs[map_ids[_i]] for _i in range(num_total)]
-        _vals = [_vals[map_ids[_i]] for _i in range(num_total)]
+        map_ids = RingShift(list(np.arange(len(_vals))), min_disorder_id)
+        _ids = [_ids[_id] for _id in map_ids]
+        _angs = [_angs[_id] for _id in map_ids]
+        _vals = [_vals[_id] for _id in map_ids]
         print('ids:')
         print(_ids)
         print('angles:')
         print(_angs)
         print('values:')
         print(_vals)
-        
-    # remove bad points acoording to the fact: values are monotonous to the angles
-
-    
-    # model is Y = kX + b
-    # X is angle, Y is the value recognized(may be wrong)
-    # calculating the linearity coefficient R,
-    # check if linear model is satisfied, otherwise using staged linear model
+        # remove bad points acoording to the fact: values are monotonous to the angles
+        # A greedy algorithm: each time remove the very point which bring the most disorder untill no disorder is found
+        # check remained point volume, if insufficient, then this is a bad prediction
+        while CountDisorder(_vals) > 0:
+            num_disorders = [CountDisorder(_vals[:rm_id] + _vals[rm_id+1:]) for rm_id in range(len(_vals))]
+            min_disorder_id = np.argmin(num_disorders)
+            print(num_disorders)
+            print('remove element at: %d ' % min_disorder_id)
+            _ids = _ids[:min_disorder_id] + _ids[min_disorder_id+1:]
+            _angs = _angs[:min_disorder_id] + _angs[min_disorder_id+1:]
+            _vals = _vals[:min_disorder_id] + _vals[min_disorder_id+1:]
+        print('the final values: ')
+        print(_vals)
+        # model is Y = kX + b
+        # X is angle, Y is the value recognized(may be wrong)
+        # calculating the linearity coefficient R,
+        # check if linear model is satisfied, otherwise using staged linear model
+        lin_coef = 
