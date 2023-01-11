@@ -1,11 +1,14 @@
 import paddleocr
-print(paddleocr.__version__)
+print('paddleocr: ' + paddleocr.__version__)
 from paddleocr import PaddleOCR, draw_ocr
 import numpy as np
-print(np.__version__)
+print('numpy: ' + np.__version__)
 import cv2
-print(cv2.__version__)
+print('opencv-python: ' + cv2.__version__)
 
+# turn on to enable testing modules
+_TEST_MODE_ = True
+_DEBUG_MODE_ = True
 
 def CompSort(x:list, sort_dim=0, ascending=False)->list:
     assert type(x) == list
@@ -18,9 +21,25 @@ def CompSort(x:list, sort_dim=0, ascending=False)->list:
     y = [x[id] for id in map_ids]
     return y
 
-
 class StagedLinearFunction(object):
-    def __init__(self, x:np.ndarray, y:np.ndarray) -> None:
+    def __init__(self, x:np.ndarray=None, y:np.ndarray=None, debug=False) -> None:
+        self.available = True
+        self.debug = debug
+        if x is None or y is None:
+            if debug:
+                print('input x or y is none!')
+            self.available = False
+            return
+        if len(x) != len(y):
+            if debug:
+                print('dim of x and y are different!')
+            self.available = False
+            return
+        if len(x) < 2:
+            if debug:
+                print('sample volume is insufficient!')
+            self.available = False
+            return
         # model is Y = kX + b
         # X is angle, Y is the value recognized(may be wrong)
         # calculating the linearity coefficient R,
@@ -44,14 +63,20 @@ class StagedLinearFunction(object):
         # self variance of Y
         var_YY = np.sum((var_y - mean_y)*(var_y - mean_y))
         # calculate linear coefficient
+        if var_XX < 1e-6 or var_YY < 1e-6:
+            if debug:
+                print('self variance of samples check failed!')
+            self.available = False
+            return
         lin_coef = var_XY / np.sqrt(var_XX*var_YY)
-        print('Linear coefficient: %.3f' % lin_coef)
+        if debug:
+            print('Linear coefficient: %.3f' % lin_coef)
         if abs(lin_coef) >= 0.9:
             self.num_stages = 0
             self.stages = []
             # calculating the parameter for linear equation y=Bx+A
             pB = var_XY / var_XX
-            pA = mean_y - mean_x * pB 
+            pA = mean_y - mean_x * pB
             self.params = [(pA, pB)]
         else:
             self.num_stages = 0
@@ -61,7 +86,7 @@ class StagedLinearFunction(object):
             # sort according to the specified dimension: angles
             samples_sorted = CompSort(samples, sort_dim=0)
             # split sorted samples into sorted variables
-            x = [samples_sorted[id][0] for id in range(len(samples_sorted))] 
+            x = [samples_sorted[id][0] for id in range(len(samples_sorted))]
             y = [samples_sorted[id][1] for id in range(len(samples_sorted))]
             self.stages = [x[0]]
             last_x = x[0]
@@ -75,10 +100,20 @@ class StagedLinearFunction(object):
                     last_y = y[i]
                     self.stages += [x[i]]
                     self.num_stages += 1
-            print('number of stages: %d' % self.num_stages)
-            print('staged linear function params: ')
-            print(self.params)
+            if debug:
+                print('number of stages: %d' % self.num_stages)
+                print('staged linear function params: ')
+                print(self.params)
+            if self.num_stages <= 0:
+                self.available = False
+                return
+    def ready(self):
+        return self.available
     def __call__(self, x):
+        if not self.available:
+            if self.debug:
+                print('function not available!')
+            return 0
         if self.num_stages > 0:
             stage_id = -1
             for i in range(len(self.stages)):
@@ -86,28 +121,29 @@ class StagedLinearFunction(object):
                     break
                 stage_id += 1
             if stage_id < 0: # range (-inf, stagess[0])
-                print('warning: call staged linear function out of range!')
+                if self.debug:
+                    print('warning: call staged linear function out of range!')
                 stage_id = 0
             elif stage_id >= self.num_stages: # range (stages[-1], +inf)
-                print('warning: call staged linear function out of range!')
+                if self.debug:
+                    print('warning: call staged linear function out of range!')
                 stage_id = self.num_stages - 1
             else:
-                print('hit stage: %d' % stage_id)
+                if self.debug:
+                    print('hit stage: %d' % stage_id)
             # apply the linear model according to stage index
             return self.params[stage_id][0] + (x - self.stages[stage_id]) * self.params[stage_id][1]
         else: # single linear equation without stages
             return self.params[0][0] + x * self.params[0][1]
-            
 
-def Float2Int(x):
+def Float2Int(x:list):
     return tuple([int(e) for e in x])
 
-
-def RotateImage(im, theta, scale, pad_val=0):
+def RotateImage(im:np.ndarray, theta:float, scale:float, pad_val=0):
     affine_matrix = cv2.getRotationMatrix2D((im.shape[1]/2.0, im.shape[0]/2.0), theta, scale=scale)
     return cv2.warpAffine(im, affine_matrix, (im.shape[1], im.shape[0]), borderValue=(pad_val,pad_val,pad_val) if len(im.shape)==3 else pad_val)
 
-def PadSquare(im, size, pad_val=0):
+def PadSquare(im:np.ndarray, size:int, pad_val=0)->np.ndarray:
     h, w = im.shape[:2]
     pad_w, pad_h = 0, 0
     if h > w:
@@ -139,10 +175,8 @@ def EnhanceContrast(im:np.ndarray)->np.ndarray:
         im = clahe.apply(im)
     return im
 
-
 def Smooth(im:np.ndarray)->np.ndarray:
     return cv2.medianBlur(im, 5)
-
 
 def Binarize(im:np.ndarray)->np.ndarray:
     im = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
@@ -156,7 +190,6 @@ def WrapAffine(pts:np.ndarray, trans:np.ndarray):
         y = trans[1,0]*pt[0] + trans[1,1]*pt[1] + trans[1,2]
         pts_new.append((x,y))
     return pts_new
-
 
 def IsDigit(v:str)->bool:
     c_ = ord(v) 
@@ -188,7 +221,6 @@ def IsFloat(v:str)->bool:
     if v[len(v)-1:] == '0':
         return False
     return True
-
 
 def IsDecimal(v:str):
     parts = SegDecimal(v)
@@ -269,7 +301,7 @@ def norm_L2(d):
 def calc_dist(p, c):
     return np.sum(np.abs(p-c))
 
-def Kmeans(points:list, group=2, min_move=1.0, max_iter=30) -> list:
+def Kmeans(points:list, group=2, min_move=1.0, max_iter=30, debug=False) -> list:
     # check group setting
     if group < 2:
         return [[i for i in range(len(points))]]
@@ -288,7 +320,6 @@ def Kmeans(points:list, group=2, min_move=1.0, max_iter=30) -> list:
         if all_same:
             group = i
             break
-    
     # iteration begin
     centers = np.array(centers)
     centers_last = centers.copy()
@@ -315,9 +346,11 @@ def Kmeans(points:list, group=2, min_move=1.0, max_iter=30) -> list:
             centers[i] = c_new
         # check stop condition: center movement 
         _move = np.max(np.sqrt(np.sum(np.square(centers_last - centers), axis=-1)))
-        print('kmeans itr# %d with center move: %.3f' % (itr, _move))
+        if debug:
+            print('kmeans itr# %d with center move: %.3f' % (itr, _move))
         if _move <  min_move:
-            print('kmeans converged')
+            if debug:
+                print('kmeans converged')
             break
         centers_last = centers.copy()
     return clusters
@@ -325,46 +358,51 @@ def Kmeans(points:list, group=2, min_move=1.0, max_iter=30) -> list:
 def EXPECT_EQ(r, e, tname): # r is real value, e is expected value
     if r != e:
         print('[%s] Test failed' % tname)
+        return False
     else:
         print('[%s] Test pass' % tname)
+        return True
 
 def EXPECT_EQ_SET(r, e, tname): # r is real set, e is expected set
     for rr in r:
         if rr not in e:
             print('[%s] Test failed' % tname)
+            return False
     for ee in e:
         if ee not in r:
             print('[%s] Test failed' % tname)
+            return False
     print('[%s] Test pass' % tname)
+    return True
 
 def EXPECT_IN(r, e, tname):
     for ee in e:
         if r == ee:
             print('[%s] Test pass' % tname)
-            break
+            return True
     print('[%s] Test failed' % tname)
+    return False
 
-def TEST_Kmeans():
+def TEST_Kmeans(debug=False):
     # test with single point in set
     ts = []
-    res = Kmeans(ts, 2)
+    res = Kmeans(ts, 2, debug=debug)
     EXPECT_EQ(res, [], 'T1')
     ts = [1,2,3]
-    res = Kmeans(ts, 1)
+    res = Kmeans(ts, 1, debug=debug)
     EXPECT_EQ(res, [[0,1,2]], 'T2')
     ts = [1]
-    res = Kmeans(ts, 2)
+    res = Kmeans(ts, 2, debug=debug)
     EXPECT_EQ(res, [[0]], 'T3')
     ts = [1, 2]
-    res = Kmeans(ts, 2)
+    res = Kmeans(ts, 2, debug=debug)
     EXPECT_EQ_SET(res, [[0],[1]], 'T4')
     ts = [1.2, 2.3, 5.6]
-    res = Kmeans(ts, 2)
+    res = Kmeans(ts, 2, debug=debug)
     EXPECT_EQ_SET(res, [[0,1],[2]], 'T5')
     ts = [7,5,1,2,9]
-    res = Kmeans(ts, 2)
+    res = Kmeans(ts, 2, debug=debug)
     EXPECT_EQ_SET(res, [[2,3],[0,1,4]], 'T6')
-
 
 def RingShift(x:list, pos:int):
     if type(x) == np.ndarray:
@@ -388,31 +426,24 @@ def CountDisorder(x:np.ndarray)->int:
         num_pos += np.sum((_x[i] - _x[:i]) > 0)
         num_neg += np.sum((_x[i] - _x[:i]) < 0)
     return min(num_pos, num_neg)
-    
 
-if __name__ == '__main__':
-    _TEST_MODE_ = False
-    if _TEST_MODE_:
-        # running test cases
-        TEST_Kmeans()
-        exit(0)
-
-    tta_splits = 3
-    # test image
-    im_path = "t2.png"
+def GetDashboardReader(
+    im: np.ndarray, 
+    tta_splits=3, 
+    ocr_model_dir='pretrained/', 
+    rec_thresh = 0.9,
+    debug=False) -> list: # return list of [StagedLinearFunction]
     ocr = PaddleOCR(
         lang="en",
-        det_model_dir='pretrained/det/en_PP-OCRv3_det_infer',
-        rec_model_dir='pretrained/rec/en_PP-OCRv3_rec_infer',
-        cls_model_dir='pretrained/cls/ch_ppocr_mobile_v2.0_cls_infer',
+        det_model_dir=ocr_model_dir + '/det/en_PP-OCRv3_det_infer',
+        rec_model_dir=ocr_model_dir + '/rec/en_PP-OCRv3_rec_infer',
+        cls_model_dir=ocr_model_dir + '/cls/ch_ppocr_mobile_v2.0_cls_infer',
         use_angle_cls=True,
         det_db_box_thresh=0.6,
         cls_thresh=0.9,
         det_db_thresh=0.3,
         det_box_type='quad',
         show_log=False)
-
-    im = cv2.imread(im_path)
     # preprocess the image
     im = PadSquare(im, 640, pad_val=0)
     im = EnhanceContrast(im)
@@ -433,11 +464,9 @@ if __name__ == '__main__':
     # draw results
     vis = im.copy()
     _color  = (0,100,200)
-    rec_thresh = 0.9
-
     quads = []
     values = []
-
+    
     # extract all qualified recognition results
     for i in range(len(res)):
         trans = cv2.getRotationMatrix2D((im.shape[1]/2.0,im.shape[0]/2.0), -angles[i], 1.0/scale)
@@ -449,18 +478,21 @@ if __name__ == '__main__':
             if not IsDecimal(text[0]):
                 continue
             val = GetDecimal(text[0])
-            print('val: %.3f conf: %.3f' % (val, conf))
+            if debug:
+                print('val: %.3f conf: %.3f' % (val, conf))
             # convert bboxes back to original coordinate
             pts = WrapAffine(pts, trans)
             # add board-ticks
             quads.append(pts)
             values.append(val)
-            last_pt = pts[-1]
-            for pt in pts:
-                cv2.line(vis, Float2Int(last_pt), Float2Int(pt), _color, 2, 8)
-                last_pt = pt
-    cv2.imshow('ocr1', vis)
-    cv2.waitKey(0)
+            if debug:
+                last_pt = pts[-1]
+                for pt in pts:
+                    cv2.line(vis, Float2Int(last_pt), Float2Int(pt), _color, 2, 8)
+                    last_pt = pt
+    if debug:
+        cv2.imshow('ocr1', vis)
+        cv2.waitKey(0)
 
     # convert from quad to rect
     bboxes = []
@@ -474,17 +506,21 @@ if __name__ == '__main__':
     # remove duplicates or subparts
     bboxes_1 = []
     values_1 = []
-    vis = im.copy()
+    if debug:
+        vis = im.copy()
     rm_flags = RectMerge(bboxes, 0.5)
-    print('removed: %d / %d' % (np.sum(rm_flags), len(rm_flags)))
+    if debug:
+        print('removed: %d / %d' % (np.sum(rm_flags), len(rm_flags)))
     for i in range(len(rm_flags)):
         if not rm_flags[i]:
             bboxes_1.append(bboxes[i])
             values_1.append(values[i])
-            pts = (bboxes[i][0],bboxes[i][1],bboxes[i][0]+bboxes[i][2],bboxes[i][1]+bboxes[i][3])
-            cv2.rectangle(vis, Float2Int(pts[:2]), Float2Int(pts[2:]), _color, 2, 8)
-    cv2.imshow('ocr2', vis)
-    cv2.waitKey(0)
+            if debug:
+                pts = (bboxes[i][0],bboxes[i][1],bboxes[i][0]+bboxes[i][2],bboxes[i][1]+bboxes[i][3])
+                cv2.rectangle(vis, Float2Int(pts[:2]), Float2Int(pts[2:]), _color, 2, 8)
+    if debug:
+        cv2.imshow('ocr2', vis)
+        cv2.waitKey(0)
 
     # solve the center coordinates
     # calculate the centers for each boxes
@@ -516,14 +552,17 @@ if __name__ == '__main__':
         # clusterize the set of distance into 2 groups using Kmeans(Estimate-Minimizing)
         clusters = []
         if len(pts) >= 3: # locate a center requires at least 3 points 
-            clusters = Kmeans(dis, group=2, max_iter=30) # max cluster number is set to $group
+            clusters = Kmeans(dis, group=2, max_iter=30, debug=debug) # max cluster number is set to $group
         else:
-            print('total points are insufficient, task canclled!')
-            exit(0)
-        print(clusters)
+            if debug:
+                print('total points are insufficient, task canclled!')
+            return []
+        if debug:
+            print(clusters)
         # remove cluster without enough points
         if len(clusters)==2 and (len(clusters[0]) < 3 or len(clusters[1]) < 3):
-            print('points in one cluster are insufficient, cluster merged!')
+            if debug:
+                print('points in one cluster are insufficient, cluster merged!')
             clusters = [clusters[0] + clusters[1]]
         # for each group, minimizing sum of |((x,y) - (x0,y0))^2 - r^2| 
         # to solve this minimization problem, we convert it to linear solution as follow:
@@ -537,25 +576,46 @@ if __name__ == '__main__':
         centers = []
         rads = []
         pts = np.array(pts)
-        vis = im.copy()
-        for clu in clusters:
+        if debug:
+            vis = im.copy()
+        clu_rm_flags = [False for _ in range(len(clusters))]
+        for icl in range(len(clusters)):
+            clu = clusters[icl]
             v_x = pts[clu,0]
             v_y = pts[clu,1]
             A = np.stack([2.0*v_x, 2.0*v_y, np.ones_like(v_x)], axis=0).T
             C = (v_x*v_x + v_y*v_y).T
             _st, iATA = cv2.invert(A.T@A)
-            assert _st > 0
+            if _st <= 0:
+                if debug:
+                    print('inverse matrix dose not exist!')
+                # mark this cluster as bad
+                clu_rm_flags[icl] = True
+                continue
             # iATA = np.linalg.inv(A.T@A)
             W = iATA @ A.T @ C
             x0 = W[0]
             y0 = W[1]
-            assert W[2] + (x0*x0 + y0*y0) > 0
+            if W[2] + (x0*x0 + y0*y0) <= 0:
+                if debug:
+                    print('radius of dashboard cannot be negative!')
+                # mark this cluster as bad
+                clu_rm_flags[icl] = True
+                continue
             r0 = np.sqrt(W[2] + (x0*x0 + y0*y0))
-            cv2.circle(vis, (int(x0),int(y0)), int(r0), _color, 2)
+            if debug:
+                cv2.circle(vis, (int(x0),int(y0)), int(r0), _color, 2)
             rads += [r0]
             centers += [(x0, y0)]
-        cv2.imshow('centers solved', vis)
-        cv2.waitKey(0)
+        if debug:
+            cv2.imshow('centers solved', vis)
+            cv2.waitKey(0)
+        # remove bad cluster in collection
+        clusters_1 = []
+        for icl in range(len(clusters)):
+            if not clu_rm_flags[icl]:
+                clusters_1.append(clusters[icl])
+        clusters = clusters_1
         # check if two radius are close enough, if yes then merge them
         if len(rads) == 2 and np.abs(rads[0] - rads[1]) / np.max(rads) < 0.18:
             rads = [(rads[0] + rads[1])/2.0]
@@ -565,27 +625,30 @@ if __name__ == '__main__':
         if len(centers) == 2:
             centers = np.array([(centers[0] + centers[1])/2.0])
         c_mov = np.sqrt(np.sum(np.square(centers - centers_last)))
-        print('EM itr#%d with center shift: %.3f' % (itr, c_mov))
+        if debug:
+            print('EM itr#%d with center shift: %.3f' % (itr, c_mov))
         if c_mov < np.max(rads) * 0.05:
-            print('center movement converged!')
+            if debug:
+                print('center movement converged!')
             break
-    print('final cluster result:')
-    print('center: (%d, %d)' % (int(centers[0][0]), int(centers[0][1])))
-    print('cluster:' + str(clusters))
-    print('values:')
-    print(np.array(values_1)[clusters[0]])
-    if len(clusters) > 1:
-        print(np.array(values_1)[clusters[1]])
-    # visualize the boxes for each board-tick axis
-    vis = im.copy()
-    colors = [(0,0,255), (255, 0, 0), (0, 255, 0)]
-    cv2.circle(vis, (int(x0),int(y0)), 30, colors[-1], 2)
-    for k in range(len(clusters)):
-        for i in clusters[k]:
-            _pts = (bboxes_1[i][0],bboxes_1[i][1],bboxes_1[i][0]+bboxes_1[i][2],bboxes_1[i][1]+bboxes_1[i][3])
-            cv2.rectangle(vis, Float2Int(_pts[:2]), Float2Int(_pts[2:]), colors[k], 2, 8)
-    cv2.imshow('cluster result', vis)
-    cv2.waitKey(0)
+    if debug:
+        print('final cluster result:')
+        print('center: (%d, %d)' % (int(centers[0][0]), int(centers[0][1])))
+        print('cluster:' + str(clusters))
+        print('values:')
+        print(np.array(values_1)[clusters[0]])
+        if len(clusters) > 1:
+            print(np.array(values_1)[clusters[1]])
+        # visualize the boxes for each board-tick axis
+        vis = im.copy()
+        colors = [(0,0,255), (255, 0, 0), (0, 255, 0)]
+        cv2.circle(vis, (int(x0),int(y0)), 30, colors[-1], 2)
+        for k in range(len(clusters)):
+            for i in clusters[k]:
+                _pts = (bboxes_1[i][0],bboxes_1[i][1],bboxes_1[i][0]+bboxes_1[i][2],bboxes_1[i][1]+bboxes_1[i][3])
+                cv2.rectangle(vis, Float2Int(_pts[:2]), Float2Int(_pts[2:]), colors[k], 2, 8)
+        cv2.imshow('cluster result', vis)
+        cv2.waitKey(0)
     # =============== modeling angles and values ================
     # get angles
     angles = [[] for _ in range(len(clusters))]
@@ -605,8 +668,10 @@ if __name__ == '__main__':
                 angles[i] += [ang]
                 values[i] += [values_1[id]]
     # sort angles, and calc gradients of values for every 2 pair points in neighborhood
+    ret_funcs = []
     for i in range(len(clusters)):
-        print('======Ring #%d======'%i)
+        if debug:
+            print('======Ring #%d======'%i)
         # merge all variables into samples
         samples = [(angles[i][id], values[i][id]) for id in range(len(angles[i]))]
         # sort according to the specified dimension: angles
@@ -618,36 +683,66 @@ if __name__ == '__main__':
         # to minimize the disorder of values
         num_disorders = [CountDisorder(RingShift(_vals, _shift)) for _shift in range(len(_vals))]
         min_disorder_id = np.argmin(num_disorders)
-        print('shift from: %d ' % min_disorder_id)
+        if debug:
+            print('shift from: %d ' % min_disorder_id)
         # rearrange the points in a ring
         map_ids = RingShift(list(np.arange(len(_vals))), min_disorder_id)
         _angs = [_angs[_id] for _id in map_ids]
         _vals = [_vals[_id] for _id in map_ids]
-        print('angles:')
-        print(_angs)
-        print('values:')
-        print(_vals)
+        if debug:
+            print('angles:')
+            print(_angs)
+            print('values:')
+            print(_vals)
         ####### remap angles according to new angle origin ######
         _angs = [_a - _angs[0] if _a >= _angs[0] else 2.*np.pi + _a - _angs[0] for _a in _angs]
-        print('angles updated: ')
-        print(_angs)
+        if debug:
+            print('angles updated: ')
+            print(_angs)
         # remove bad points acoording to the fact: values are monotonous to the angles
         # A greedy algorithm: each time remove the very point which bring the most disorder untill no disorder is found
         # check remained point volume, if insufficient, then this is a bad prediction
         while CountDisorder(_vals) > 0:
             num_disorders = [CountDisorder(_vals[:rm_id] + _vals[rm_id+1:]) for rm_id in range(len(_vals))]
             min_disorder_id = np.argmin(num_disorders)
-            print(num_disorders)
-            print('remove element at: %d ' % min_disorder_id)
+            if debug:
+                print(num_disorders)
+                print('remove element at: %d ' % min_disorder_id)
             _angs = _angs[:min_disorder_id] + _angs[min_disorder_id+1:]
             _vals = _vals[:min_disorder_id] + _vals[min_disorder_id+1:]
-        print('the final values: ')
-        print(_vals)
+        if debug:
+            print('the final values: ')
+            print(_vals)
         # check if points are sufficient for linear modeling
-        assert len(_vals) >= 2
+        if len(_vals) < 2:
+            continue
         # get staged linear function
-        linear_func = StagedLinearFunction(_angs, _vals)
+        linear_func = StagedLinearFunction(_angs, _vals, debug=debug)
         # a demo call
-        preds = [linear_func(_angs[_id] + 0.01) for _id in range(len(_angs))]
-        print(preds)
-        print(_vals)
+        if debug:
+            preds = [linear_func(_angs[_id] + 0.01) for _id in range(len(_angs))]
+            print(preds)
+            print(_vals)
+        ret_funcs += [linear_func]
+    return ret_funcs
+
+def TEST_GetDashboardReader(debug=False):
+    test_double_ring = 't1.png'
+    # test double ring dashboard
+    funcs = GetDashboardReader(cv2.imread(test_double_ring), debug=debug)
+    if EXPECT_EQ(len(funcs), 2, 'DASHBOARD_T1'):
+        # test outer ring
+        EXPECT_EQ(funcs[0].num_stages, 0, 'DASHBOARD_T2')
+        EXPECT_EQ_SET(funcs[0].stages, [], 'DASHBOARD_T3')
+        EXPECT_EQ(abs(funcs[0](0)-4)<0.01, True, 'DASHBOARD_T4') # check residule
+        # test inner ring
+        EXPECT_EQ(funcs[1].num_stages, 0, 'DASHBOARD_T5')
+        EXPECT_EQ_SET(funcs[1].stages, [], 'DASHBOARD_T6')
+        EXPECT_EQ(abs(funcs[1](0)-60)<1, True, 'DASHBOARD_T7')
+
+# for module test only, call this module seperatelly will run the test
+if __name__ == '__main__':
+    if _TEST_MODE_:
+        # running test cases
+        TEST_Kmeans(debug=_DEBUG_MODE_)
+        TEST_GetDashboardReader(debug=_DEBUG_MODE_)
