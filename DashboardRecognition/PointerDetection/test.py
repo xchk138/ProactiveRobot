@@ -14,9 +14,7 @@ if __name__ == '__main__':
         if id < 5:
             continue
         im = Preprocess(im_raw)
-        im_pad,_,_,_ = PadSquare(im, 640, 0)
-        cv2.imshow('original', im_pad)
-        cv2.waitKey(0)
+        im_pad,pad_w,pad_h,pad_scale = PadSquare(im, 640)
         bboxes, labels, objs = detector.infer_closer(im, debug=False)
         for ibb in range(len(bboxes)):
             if LABEL_NAMES[labels[ibb]].lower() in ['dashboard']:
@@ -25,6 +23,15 @@ if __name__ == '__main__':
                 y -= h*relax_ratio/2
                 w *= (1.0+relax_ratio)
                 h *= (1.0+relax_ratio)
+                # visualize the detection result
+                cv2.rectangle(
+                    im_pad, 
+                    (int((x+pad_w/2)*pad_scale),int((y+pad_h/2)*pad_scale)), 
+                    (int((x+w+pad_w/2)*pad_scale),int((y+h+pad_h/2)*pad_scale)), 
+                    board_color, 
+                    2)
+                cv2.imshow('original', im_pad)
+                cv2.waitKey(0)
                 im_crop = im[int(y):int(y+h),int(x):int(x+w)]
                 # find related pointers
                 ptrs = [] # indices of pointer bounding boxes
@@ -57,3 +64,4 @@ if __name__ == '__main__':
                             py += 50
                 cv2.imshow('crop#%d' % ibb, vis)
                 cv2.waitKey(0)
+        cv2.waitKey(0)
