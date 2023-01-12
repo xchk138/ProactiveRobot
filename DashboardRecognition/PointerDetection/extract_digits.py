@@ -473,15 +473,16 @@ def RingShift(x:list, pos:int):
 
 def CountDisorder(x:np.ndarray)->int:
     num_pos = 0
-    num_neg = 0
+    #num_neg = 0
     if type(x) == list:
         _x = np.array(x)
     else:
         _x = x
     for i in range(1,len(x)):
         num_pos += np.sum((_x[i] - _x[:i]) > 0)
-        num_neg += np.sum((_x[i] - _x[:i]) < 0)
-    return min(num_pos, num_neg)
+        #num_neg += np.sum((_x[i] - _x[:i]) < 0)
+    #return min(num_pos, num_neg)
+    return num_pos
 
 def GetDashboardReader(
     im: np.ndarray, 
