@@ -1,4 +1,4 @@
-from extract_digits import GetDashboardReader
+from extract_digits import GetDashboardReader, PadSquare
 from inference import YoloDetector, LABEL_NAMES
 from utils import GetImages, Preprocess
 import cv2
@@ -14,6 +14,9 @@ if __name__ == '__main__':
         if id < 5:
             continue
         im = Preprocess(im_raw)
+        im_pad,_,_,_ = PadSquare(im, 640, 0)
+        cv2.imshow('original', im_pad)
+        cv2.waitKey(0)
         bboxes, labels, objs = detector.infer_closer(im, debug=False)
         for ibb in range(len(bboxes)):
             if LABEL_NAMES[labels[ibb]].lower() in ['dashboard']:
