@@ -15,6 +15,7 @@ from enum import Enum
 import platform
 
 from inference import YoloDetector
+from utils import GetImages, Preprocess
 
 # USE KEYPOINT
 USE_KEYPOINT = False
@@ -344,20 +345,7 @@ def OnDrawRect(event, x, y, flags, params:DrawConsole):
 
 
 def GetBoundingRectsAndLabels(im, default_label=0, backend=None):
-    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
-    if len(im.shape)==3:
-        h, w, c = im.shape
-        if c==4:
-            im = im[:,:,:3]
-        # make both width and height even numbers
-        new_w, new_h = w//2 *2, h//2 *2
-        if new_w < w or new_h < h:
-            im = im[:new_h, :new_w]
-        im = cv2.cvtColor(im, cv2.COLOR_BGR2YUV_I420)
-        im[:h,:] = clahe.apply(im[:h,:])
-        im = cv2.cvtColor(im, cv2.COLOR_YUV2BGR_I420)
-    else:
-        im = clahe.apply(im)
+    im = Preprocess(im)
     vis = im.copy()
     info = DrawConsole(vis)
     info.win_name = 'draw rects and pointers'
@@ -389,24 +377,6 @@ def GetBoundingRectsAndLabels(im, default_label=0, backend=None):
     return ([info.targets[i].bbox for i in range(len(info.targets))], 
     [info.targets[i].label for i in range(len(info.targets))],
     [info.targets[i].kpts for i in range(len(info.targets))])
-
-
-def GetImages(image_path):
-    filenames = os.listdir(image_path)
-    i = 0
-    for _fn in filenames:
-        if _fn.endswith('.jpg') or _fn.endswith('.png'):
-            _fn = os.path.join(image_path, _fn)
-            im = cv2.imread(_fn, cv2.IMREAD_COLOR)
-            if im is None:
-                continue
-            if len(im.shape)==2:
-                im = cv2.cvtColor(im, cv2.COLOR_GRAY2BGR)
-            elif im.shape[-1] == 4:
-                im = im[:,:,:3]
-            yield (i, _fn, im)
-            i += 1
-
 
 def SaveImage(path_images, frame_id, im):
     cv2.imwrite('/'.join([path_images, '%08d.jpg' % frame_id]), im)

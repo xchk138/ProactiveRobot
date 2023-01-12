@@ -317,7 +317,7 @@ class YoloDetector(object):
         return YoloDetector.merge_bboxes(bboxes, labels)
     
     # todo : get each bbox of dashboard, and extend it to detect pointers within it.
-    def infer_closer(self, im:np.ndarray):
+    def infer_closer(self, im:np.ndarray, debug=False):
         bboxes = []
         labels = []
         extend_ratio = 1.5
@@ -356,5 +356,6 @@ class YoloDetector(object):
         # merge all bbox with matched labels and IOU
         bboxes, labels = YoloDetector.merge_bboxes(bboxes, labels)
         bboxes, labels, objects, obj_num = YoloDetector.pair_objects(bboxes, labels)
-        print('found %d objects' % obj_num)
+        if debug:
+            print('found %d objects' % obj_num)
         return bboxes, labels, objects

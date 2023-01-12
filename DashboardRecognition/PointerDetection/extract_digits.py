@@ -81,7 +81,7 @@ class StagedLinearFunction(object):
         lin_coef = var_XY / np.sqrt(var_XX*var_YY)
         if debug:
             print('Linear coefficient: %.3f' % lin_coef)
-        if abs(lin_coef) >= 0.9:
+        if abs(lin_coef) >= 0.96:
             self.num_stages = 0
             self.stages = []
             # calculating the parameter for linear equation y=Bx+A
@@ -132,14 +132,24 @@ class StagedLinearFunction(object):
             if self.debug:
                 print('bad call: input requires point of 4 dim as (x,y,w,h)!')
             return -1
-        # convert point into center 
         # find the farest point, it's the pointer end
         # convert from bbox into quad pointers
-        pts = [(x[0],x[1]), (x[0]+x[2],x[1]), (x[0],x[1]+x[3]), (x[0]+x[2], x[1]+x[3])]
+        pts = [(x[0],x[1]), (x[0]+x[2],x[1]), (x[0]+x[2], x[1]+x[3]), (x[0],x[1]+x[3])]
         dis = []
+        if self.debug:
+            print('the board center: ' + str(self.center))
         for pt in pts:
             dis += [np.sum(np.square(np.array(pt) - np.array(self.center)))]
         max_id = np.argmax(dis)
+        if self.debug:
+            if max_id == 0:
+                print('the left top is the end of pointer')
+            elif max_id == 1:
+                print('the right top is the end of pointer')
+            elif max_id == 2:
+                print('the right bottom is the end of pointer')
+            else:
+                print('the left bottom is the end of pointer')
         # get the pointer end
         ptr_end = pts[max_id]
         # get the angle
@@ -200,7 +210,9 @@ def PadSquare(im:np.ndarray, size:int, pad_val=0)->np.ndarray:
     else:
         im_pad = np.zeros([h+pad_h, w+pad_w], im.dtype) + pad_val
         im_pad[pad_h//2:pad_h//2+h, pad_w//2:pad_w//2+w] = im[:,:]
-    return cv2.resize(im_pad, (size, size), interpolation=cv2.INTER_LINEAR_EXACT)
+    assert im_pad.shape[0] == im_pad.shape[1]
+    scale = 1.0*size / im_pad.shape[0]
+    return cv2.resize(im_pad, (size, size), interpolation=cv2.INTER_LINEAR_EXACT), pad_w, pad_h, scale
 
 def EnhanceContrast(im:np.ndarray)->np.ndarray:
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
@@ -489,7 +501,7 @@ def GetDashboardReader(
         det_box_type='quad',
         show_log=False)
     # preprocess the image
-    im = PadSquare(im, 640, pad_val=0)
+    im, im_pad_w,im_pad_h,im_scale = PadSquare(im, 640, pad_val=0)
     im = EnhanceContrast(im)
     im = Binarize(im)
     im = cv2.cvtColor(im, cv2.COLOR_GRAY2BGR)
@@ -565,6 +577,9 @@ def GetDashboardReader(
     if debug:
         cv2.imshow('ocr2', vis)
         cv2.waitKey(0)
+    # check if points are enough
+    if len(bboxes_1) <= 3:
+        return []
 
     # solve the center coordinates
     # calculate the centers for each boxes
@@ -762,7 +777,9 @@ def GetDashboardReader(
         if len(_vals) < 2:
             continue
         # get staged linear function
-        linear_func = StagedLinearFunction(_angs, _vals, centers[0], rads[i], origin, debug=debug)
+        # convert center coordinate from standard to original image
+        center_pt = (centers[0][0] / im_scale - im_pad_w/2, centers[0][1] / im_scale - im_pad_h/2)
+        linear_func = StagedLinearFunction(_angs, _vals, center_pt, rads[i], origin, debug=debug)
         # a demo call
         if debug:
             print(linear_func.stages)
@@ -771,7 +788,7 @@ def GetDashboardReader(
     return ret_funcs
 
 def TEST_GetDashboardReader(debug=False):
-    test_double_ring = 't1.png'
+    test_double_ring = 'ds1.png'
     # test double ring dashboard
     im = cv2.imread(test_double_ring)
     ptr_box = (0,0,im.shape[1]/2,im.shape[0]/2)
