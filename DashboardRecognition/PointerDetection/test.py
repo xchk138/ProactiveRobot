@@ -12,8 +12,10 @@ if __name__ == '__main__':
     model_dir = './pretrained/'
     #images = GetImages('../data/samples/real/1')
     images = GetImages('./')
-    detector = YoloDetector(model_dir + '/yolo/yolov5n-pointer-1.onnx', num_class=3, score_thres=0.3, conf_thres=0.3)
+    detector = YoloDetector(model_dir + '/yolo/yolov5n-pointer-1.onnx', num_class=3, score_thres=0.5, conf_thres=0.5)
     for id, fn, im_raw in images:
+        if id < 3:
+            continue
         print(fn)
         im = Preprocess(im_raw)
         im_h, im_w = im.shape[0:2]

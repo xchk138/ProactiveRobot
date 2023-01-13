@@ -83,7 +83,8 @@ class StagedLinearFunction(object):
             print('Linear coefficient: %.3f' % lin_coef)
         if abs(lin_coef) >= 0.96:
             self.num_stages = 0
-            self.stages = []
+            x = sorted(x, reverse=False) # ascending order
+            self.stages = [x[0], x[-1]]
             # calculating the parameter for linear equation y=Bx+A
             pB = var_XY / var_XX
             pA = mean_y - mean_x * pB
@@ -208,9 +209,14 @@ class StagedLinearFunction(object):
                 ang = 2*np.pi - ang
         # transform angle coordinate
         ang = ang - self.origin
-        if ang < 0:
-            ang += 2*np.pi
         x = ang
+        # check if the angle exceeds the range
+        if x < self.stages[0]:
+            if self.stages[0] - x > abs(2*np.pi+x - self.stages[-1]):
+                x += 2*np.pi
+        if x > self.stages[-1]:
+            if x - self.stages[-1] > abs(-2*np.pi+x - self.stages[0]):
+                x -= 2*np.pi
         # calculate the value of given angle
         if self.num_stages > 0:
             stage_id = -1
@@ -280,7 +286,7 @@ def Smooth(im:np.ndarray)->np.ndarray:
 
 def Binarize(im:np.ndarray)->np.ndarray:
     im = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-    return 255 - cv2.adaptiveThreshold(im, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, blockSize=9, C=15)
+    return 255 - cv2.adaptiveThreshold(im, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, blockSize=9, C=30)
 
 def WrapAffine(pts:np.ndarray, trans:np.ndarray):
     pts_new = []
