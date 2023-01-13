@@ -119,7 +119,12 @@ class StagedLinearFunction(object):
                 return
     def ready(self):
         return self.available
-    def __call__(self, x:tuple):
+    # x is the bounding box of pointer, x,y,w,h
+    # diagonal id is the diagonal line index of pointer,
+    # diagonal_id=-1 stands for uncertainty of choice.
+    # diagonal_id=0 stands for diagonal line from top left to bottom right
+    # diagonal_id=1 stands for diagonal line from top right to bottom left
+    def __call__(self, x:tuple, diagonal_id=-1):
         if not self.available:
             if self.debug:
                 print('function not available!')
@@ -132,26 +137,65 @@ class StagedLinearFunction(object):
             if self.debug:
                 print('bad call: input requires point of 4 dim as (x,y,w,h)!')
             return -1
-        # find the farest point, it's the pointer end
-        # convert from bbox into quad pointers
-        pts = [(x[0],x[1]), (x[0]+x[2],x[1]), (x[0]+x[2], x[1]+x[3]), (x[0],x[1]+x[3])]
-        dis = []
-        if self.debug:
-            print('the board center: ' + str(self.center))
-        for pt in pts:
-            dis += [np.sum(np.square(np.array(pt) - np.array(self.center)))]
-        max_id = np.argmax(dis)
-        if self.debug:
-            if max_id == 0:
-                print('the left top is the end of pointer')
-            elif max_id == 1:
-                print('the right top is the end of pointer')
-            elif max_id == 2:
-                print('the right bottom is the end of pointer')
-            else:
-                print('the left bottom is the end of pointer')
         # get the pointer end
-        ptr_end = pts[max_id]
+        ptr_end = (0,0)
+        if diagonal_id==-1:
+            # convert from bbox into quad pointers
+            pts = [(x[0],x[1]), (x[0]+x[2],x[1]), (x[0]+x[2], x[1]+x[3]), (x[0],x[1]+x[3])]
+            # find the farest point, it's the pointer end
+            dis = []
+            if self.debug:
+                print('the board center: ' + str(self.center))
+            for pt in pts:
+                dis += [np.sum(np.square(np.array(pt) - np.array(self.center)))]
+            max_id = np.argmax(dis)
+            if self.debug:
+                if max_id == 0:
+                    print('the left top is the end of pointer')
+                elif max_id == 1:
+                    print('the right top is the end of pointer')
+                elif max_id == 2:
+                    print('the right bottom is the end of pointer')
+                else:
+                    print('the left bottom is the end of pointer')
+            ptr_end = pts[max_id]
+        elif diagonal_id==0:
+            # the diagonal line from TL to BR is the pointer
+            # convert from bbox into points of TL and BR
+            pts = [(x[0],x[1]), (x[0]+x[2], x[1]+x[3])]
+            # find the farest point, it's the pointer end
+            dis = []
+            if self.debug:
+                print('the board center: ' + str(self.center))
+            for pt in pts:
+                dis += [np.sum(np.square(np.array(pt) - np.array(self.center)))]
+            max_id = np.argmax(dis)
+            if self.debug:
+                if max_id == 0:
+                    print('the left top is the end of pointer')
+                else:
+                    print('the right bottom is the end of pointer')
+            ptr_end = pts[max_id]
+        elif diagonal_id==1:
+            # the diagonal line from TR to BL is the pointer
+            # convert from bbox into points of TL and BR
+            pts = [(x[0]+x[2],x[1]),  (x[0],x[1]+x[3])]
+            # find the farest point, it's the pointer end
+            dis = []
+            if self.debug:
+                print('the board center: ' + str(self.center))
+            for pt in pts:
+                dis += [np.sum(np.square(np.array(pt) - np.array(self.center)))]
+            max_id = np.argmax(dis)
+            if self.debug:
+                if max_id == 0:
+                    print('the right top is the end of pointer')
+                else:
+                    print('the left bottom is the end of pointer')
+            ptr_end = pts[max_id]
+        else:
+            print('diagonal_id is invalid!')
+            assert False
         # get the angle
         vec = np.array(ptr_end) - np.array(self.center)
         dis = norm_L2(vec)
@@ -254,8 +298,8 @@ def IsDigit(v:str)->bool:
 def IsInteger(v:str)-> bool:
     if v == '0':
         return True
-    elif v[:1] == '0':
-        return False
+    # elif v[:1] == '0':
+    #     return False
     for i in range(len(v)):
         chr = v[i:i+1]
         if not IsDigit(chr):
@@ -279,6 +323,8 @@ def IsFloat(v:str)->bool:
     return True
 
 def IsDecimal(v:str):
+    if v[0] == '-': # negative figure
+        v = v[1:]
     parts = SegDecimal(v)
     if len(parts) == 1:
         return IsInteger(v)
@@ -287,11 +333,17 @@ def IsDecimal(v:str):
 
 def GetDecimal(v:str) -> float:
     assert IsDecimal(v)
+    neg_ = 1
+    if v[0] == '-': # negative figure
+        v = v[1:]
+        neg_ = -1
     parts = SegDecimal(v)
     if len(parts) == 1:
-        return int(v) # atoi_s(v)
+        return neg_*int(v) # atoi_s(v)
     else:
-        return float(v) # atof_s(v)
+        if v[0]=='0' and v[1]!='.': # the dot is missing, we put it back
+            v = '.'.join(['0', v[1:]])
+        return neg_*float(v) # atof_s(v)
 
 def RectInter(bb1, bb2):
     bx1 = max(bb1[0], bb2[0])
@@ -503,7 +555,7 @@ def GetDashboardReader(
         show_log=False)
     # preprocess the image
     im, im_pad_w,im_pad_h,im_scale = PadSquare(im, 640, pad_val=0)
-    im = EnhanceContrast(im)
+    #im = EnhanceContrast(im)
     im = Binarize(im)
     im = cv2.cvtColor(im, cv2.COLOR_GRAY2BGR)
     # test time augmentation
@@ -529,6 +581,8 @@ def GetDashboardReader(
         trans = cv2.getRotationMatrix2D((im.shape[1]/2.0,im.shape[0]/2.0), -angles[i], 1.0/scale)
         #print(trans)
         for pts, text in res[i]:
+            if debug:
+                print('text: %s conf: %.3f' % (text[0], text[1]))
             conf = text[1]
             if conf < rec_thresh:
                 continue
@@ -595,13 +649,20 @@ def GetDashboardReader(
     # if ratio of distance is under given threshold, then merge 2 clusters
     x0 = 0
     y0 = 0
+    # method #1
     # mean x and mean y as the initial center
-    for i in range(len(pts)):
-        x0 += pts[i][0]
-        y0 += pts[i][1]
-    x0 /= len(pts)
-    y0 /= len(pts)
-    centers = [(x0, y0)]
+    # this approach sometimes goes into a bad solution,sub-optimal
+    USE_MEAN_AS_CENTER = False
+    if USE_MEAN_AS_CENTER:
+        for i in range(len(pts)):
+            x0 += pts[i][0]
+            y0 += pts[i][1]
+        x0 /= len(pts)
+        y0 /= len(pts)
+        centers = [(x0, y0)]
+    # method #2
+    # set the center as the center of the image
+    centers = [(im.shape[1]/2.0, im.shape[0]/2.0)]
     # iterate to solve center and radius
     MAX_ITER = 30
     for itr in range(MAX_ITER):

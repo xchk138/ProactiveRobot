@@ -36,3 +36,37 @@ def Preprocess(im:np.ndarray) -> np.ndarray:
     else:
         im = clahe.apply(im)
         return cv2.cvtColor(im, cv2.COLOR_GRAY2BGR)
+
+# find which diagonal line is the pointer on dashboard
+# return 0 stands for diagonal line from top left to bottom right
+# return 1 stands for diagonal line from top right to bottom left
+# return -1 stands for low confidence on judging.
+def LocatePointer(im:np.ndarray, debug=False)->int:
+    # split the rect of image into 4 parts of same size,
+    # represents top-left,top-right,bottom-left,bottom-right regions
+    if debug:
+        cv2.imshow('locate pointer', im)
+        cv2.waitKey(0)
+    h, w = im.shape[:2]
+    reg_top_left = im[:h//2, :w//2]
+    reg_top_right = im[:h//2, w//2:]
+    reg_bottom_left = im[h//2:, :w//2]
+    reg_bottom_right = im[h//2:, w//2:]
+    # if top left and bottom right region is literally darker,
+    # then the diagonal line from TL to BR(back slash) is the pointer;
+    # otherwise, the diagonal from TR to BL(slash) is the pointer.
+    avg_TLBR = reg_top_left.mean() + reg_bottom_right.mean()
+    avg_TRBL = reg_top_right.mean() + reg_bottom_left.mean()
+    if abs(avg_TLBR - avg_TRBL) > 0.1*max(avg_TRBL, avg_TLBR):
+        if avg_TLBR < avg_TRBL:
+            if debug:
+                print('TL to BR is darker, chosen for pointer')
+            return 0
+        else:
+            if debug:
+                print('TR to BL is darker, chosen for pointer')
+            return 1
+    else:
+        if debug:
+            print('TLBR and TRBL is equally bright, cannot chose!')
+        return -1

@@ -1,6 +1,6 @@
 from extract_digits import GetDashboardReader, PadSquare, EnhanceContrast, Binarize
 from inference import YoloDetector, LABEL_NAMES
-from utils import GetImages, Preprocess
+from utils import GetImages, Preprocess, LocatePointer
 import cv2
 from paddleocr import PaddleOCR
 
@@ -66,7 +66,10 @@ if __name__ == '__main__':
                     read_funcs = GetDashboardReader(im_crop, debug=True, ocr_model_dir=model_dir)
                     for func_id in range(len(read_funcs)):
                         if read_funcs[func_id].ready():
-                            _read = read_funcs[func_id](ptr_bboxes[-1])
+                            _read = read_funcs[func_id](
+                                ptr_bboxes[-1], 
+                                LocatePointer(im_crop[int(ptr_y):int(ptr_y+ptr_h), int(ptr_x):int(ptr_x + ptr_w)], True)
+                            )
                             cv2.putText(vis, 'pointer# %d at ring#%d reads: %.1f' % (ptr_id, func_id, _read), (px, py), cv2.FONT_HERSHEY_PLAIN, 2.0, ptr_color,2)
                             py += 50
                 cv2.imshow('crop#%d' % ibb, vis)
@@ -109,4 +112,3 @@ if __name__ == '__main__':
                 im_crop = cv2.cvtColor(im_crop, cv2.COLOR_GRAY2BGR)
                 res = ocr.ocr(im_crop, det=False, rec=True,cls=False)[0]
                 print(res)
-        cv2.waitKey(0)
