@@ -776,6 +776,25 @@ def GetDashboardReader(
                 cv2.rectangle(vis, Float2Int(_pts[:2]), Float2Int(_pts[2:]), colors[k], 2, 8)
         cv2.imshow('cluster result', vis)
         cv2.waitKey(0)
+    # checking the cluster distribution, if distances to the center has large variance,
+    # then this cluster may contains bad points, we need remove them
+    # calculate the average distance to the center to be radius of circle
+    for k in range(len(clusters)):
+        dis_var = 0
+        for i in clusters[k]:
+            _dis = np.sqrt(np.sum(np.square(np.array(pts[i]) - np.array(centers[0]))))
+            dis_var += (_dis - rads[k])*(_dis - rads[k])
+        dis_var = np.sqrt(dis_var/len(clusters[k]))
+        if dis_var > 0.2*rads[k]:
+            if debug:
+                print('large variance found inside cluster#%d: %.3f' %(k, dis_var))
+            # required to remove bad points inside cluster
+            # using ransac algorithm to optimize the clustering process
+            # randomly select 3 point to calculate the center of radius, 
+            # then estimate the rest of points.
+            # if over 90% or higher of the points support this solution,
+            # then the solution is optimal.
+            
     # =============== modeling angles and values ================
     # get angles
     angles = [[] for _ in range(len(clusters))]
