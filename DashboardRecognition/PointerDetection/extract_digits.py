@@ -286,7 +286,7 @@ def Smooth(im:np.ndarray)->np.ndarray:
 
 def Binarize(im:np.ndarray)->np.ndarray:
     im = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-    return 255 - cv2.adaptiveThreshold(im, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, blockSize=9, C=30)
+    return 255 - cv2.adaptiveThreshold(im, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, blockSize=9, C=10) # C=15
 
 def WrapAffine(pts:np.ndarray, trans:np.ndarray):
     pts_new = []
@@ -298,7 +298,7 @@ def WrapAffine(pts:np.ndarray, trans:np.ndarray):
     return pts_new
 
 def IsDigit(v:str)->bool:
-    c_ = ord(v) 
+    c_ = ord(v)
     return c_ >= ord('0') and c_ <= ord('9')
 
 def IsInteger(v:str)-> bool:

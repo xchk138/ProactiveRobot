@@ -92,8 +92,8 @@ if __name__ == '__main__':
                 x,y,w,h=bboxes[ibb]
                 x1 = max(0, x-w*relax_ratio/2)
                 y1 = max(0, y-h*relax_ratio/2)
-                x2 = min(im.shape[1], x+w/2+w*relax_ratio/2)
-                y2 = min(im.shape[0], y+h/2+h*relax_ratio/2)
+                x2 = min(im_w, x+w+w*relax_ratio/2)
+                y2 = min(im_h, y+h+h*relax_ratio/2)
                 x = x1
                 y = y1
                 w = x2 - x1
@@ -103,14 +103,14 @@ if __name__ == '__main__':
                     im_pad, 
                     (int((x+pad_w/2)*pad_scale),int((y+pad_h/2)*pad_scale)), 
                     (int((x+w+pad_w/2)*pad_scale),int((y+h+pad_h/2)*pad_scale)), 
-                    board_color, 
+                    dsp_color, 
                     2)
                 cv2.imshow('original', im_pad)
                 cv2.waitKey(0)
                 im_crop = im[int(y):int(y+h),int(x):int(x+w)]
                 im_crop, im_pad_w,im_pad_h,im_scale = PadSquare(im_crop, 640, pad_val=0)
                 im_crop = EnhanceContrast(im_crop)
-                im_crop = Binarize(im_crop)
-                im_crop = cv2.cvtColor(im_crop, cv2.COLOR_GRAY2BGR)
-                res = ocr.ocr(im_crop, det=False, rec=True,cls=False)[0]
+                res = ocr.ocr(im_crop)[0]
                 print(res)
+                cv2.imshow('display', im_crop)
+                cv2.waitKey(0)
