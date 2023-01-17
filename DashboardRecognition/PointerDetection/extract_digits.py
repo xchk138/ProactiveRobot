@@ -542,6 +542,27 @@ def CountDisorder(x:np.ndarray)->int:
     #return min(num_pos, num_neg)
     return num_pos
 
+def TriangleOuterCircle(pts: list, debug=False)-> tuple:
+    v_x = pts[:,0]
+    v_y = pts[:,1]
+    A = np.stack([2.0*v_x, 2.0*v_y, np.ones_like(v_x)], axis=0).T
+    C = (v_x*v_x + v_y*v_y).T
+    _st, iATA = cv2.invert(A.T@A)
+    if _st <= 0:
+        if debug:
+            print('inverse matrix does not exist!')
+        return (), 0
+    # iATA = np.linalg.inv(A.T@A)
+    W = iATA @ A.T @ C
+    x0 = W[0]
+    y0 = W[1]
+    if W[2] + (x0*x0 + y0*y0) <= 0:
+        if debug:
+            print('radius of dashboard cannot be negative!')
+        return (), 0
+    r0 = np.sqrt(W[2] + (x0*x0 + y0*y0))
+    return (x0, y0), r0
+
 def GetDashboardReader(
     im: np.ndarray, 
     tta_splits=3, 
@@ -715,7 +736,7 @@ def GetDashboardReader(
             _st, iATA = cv2.invert(A.T@A)
             if _st <= 0:
                 if debug:
-                    print('inverse matrix dose not exist!')
+                    print('inverse matrix does not exist!')
                 # mark this cluster as bad
                 clu_rm_flags[icl] = True
                 continue
@@ -776,7 +797,7 @@ def GetDashboardReader(
                 cv2.rectangle(vis, Float2Int(_pts[:2]), Float2Int(_pts[2:]), colors[k], 2, 8)
         cv2.imshow('cluster result', vis)
         cv2.waitKey(0)
-    # checking the cluster distribution, if distances to the center has large variance,
+    # checking the cluster distribution, if distances to the center have large variance,
     # then this cluster may contains bad points, we need remove them
     # calculate the average distance to the center to be radius of circle
     for k in range(len(clusters)):
@@ -790,11 +811,57 @@ def GetDashboardReader(
                 print('large variance found inside cluster#%d: %.3f' %(k, dis_var))
             # required to remove bad points inside cluster
             # using ransac algorithm to optimize the clustering process
-            # randomly select 3 point to calculate the center of radius, 
+            # randomly select 3 point to calculate the center of circle, 
             # then estimate the rest of points.
             # if over 90% or higher of the points support this solution,
             # then the solution is optimal.
-            
+            num_support = 0
+            ransac_thres = 0.98
+            min_degree = 10 # in line control
+            num_total = len(clusters[k])
+            RANSAC_MAX_ITER = 100
+            SUPPORT_THRES = 0.2
+            itr = 0 # count the iteration number up to the limit
+            while itr < RANSAC_MAX_ITER:
+                selects = []
+                # randomly select 3 points to calculate the center
+                while len(selects) == 3:
+                    _id = int(np.random.rand()*num_total)
+                    if _id not in selects:
+                        selects += [_id]
+                # check if 3 points are in a line
+                # vector from A to B
+                vecAB = np.array(pts[clusters[k][selects[0]]]) - np.array(pts[clusters[k][selects[1]]])
+                vecBC = np.array(pts[clusters[k][selects[1]]]) - np.array(pts[clusters[k][selects[2]]])
+                normAB = np.sqrt(np.sum(np.square(vecAB)))
+                normBC = np.sqrt(np.sum(np.square(vecBC)))
+                # ensure no duplicate points
+                if normAB < 1.0 or normBC < 1.0: # cannot be too close
+                    continue
+                # ensure 3 points are not in a same line
+                acos_ = (vecAB[0]*vecBC[0] + vecAB[1]*vecBC[1]) / (normAB*normBC)
+                if np.abs(acos_) < np.cos(min_degree/180.0*np.pi): # angle must be larger than 10 degree
+                    continue
+                # calculate the outer-circle for a triangle
+                tri_pts = [pts[clusters[k][selects[_id]]] for _id in range(3)]
+                cnt_, rad_ = TriangleOuterCircle(tri_pts, debug=True)
+                # count supports
+                num_support = 0
+                for i in clusters[k]:
+                    _dis = np.sqrt(np.sum(np.square(np.array(pts[i]) - np.array(cnt_))))
+                    if np.abs(_dis - rad_) <= SUPPORT_THRES*rad_:
+                        num_support += 1
+                # check if min-support is met
+                if num_support*1.0/num_total >= ransac_thres:
+                    if debug:
+                        print('min-support in RANSAC is satisfied!')
+                    break
+            if num_support > ransac_thres * num_total:
+                # use this new center and radius to replace old ones
+                # and remove unsupported items
+                centers = []
+
+
     # =============== modeling angles and values ================
     # get angles
     angles = [[] for _ in range(len(clusters))]
