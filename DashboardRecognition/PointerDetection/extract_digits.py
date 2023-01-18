@@ -207,9 +207,18 @@ class StagedLinearFunction(object):
             ang = np.arccos(vec[0])
             if vec[1] < 0: # y < 0
                 ang = 2*np.pi - ang
+        else:
+            if self.debug:
+                print('calling failed: too close to the center!')
+                return 0
         # transform angle coordinate
+        if self.debug:
+            print('the angle of pointer#1: %.3f' % ang)
         ang = ang - self.origin
         x = ang
+        if self.debug:
+            print('the original angle: %.3f' % self.origin)
+            print('the angle of pointer#2: %.3f' % x)
         # check if the angle exceeds the range
         if x < self.stages[0]:
             if self.stages[0] - x > abs(2*np.pi+x - self.stages[-1]):
@@ -217,8 +226,12 @@ class StagedLinearFunction(object):
         if x > self.stages[-1]:
             if x - self.stages[-1] > abs(-2*np.pi+x - self.stages[0]):
                 x -= 2*np.pi
+        if self.debug:
+            print('the corrected angle of pointer: %.3f' % x)
         # calculate the value of given angle
         if self.num_stages > 0:
+            if self.debug:
+                print('enter case 1: staged linear equation')
             stage_id = -1
             for i in range(len(self.stages)):
                 if x < self.stages[i]:
@@ -236,9 +249,16 @@ class StagedLinearFunction(object):
                 if self.debug:
                     print('hit stage: %d' % stage_id)
             # apply the linear model according to stage index
-            return self.params[stage_id][0] + (x - self.stages[stage_id]) * self.params[stage_id][1]
+            ans_ = self.params[stage_id][0] + (x - self.stages[stage_id]) * self.params[stage_id][1]
+            if self.debug:
+                print('the pointer reads: %.3f' % ans_)
+            return ans_
         else: # single linear equation without stages
-            return self.params[0][0] + x * self.params[0][1]
+            ans_ = self.params[0][0] + x * self.params[0][1]
+            if self.debug:
+                print('enter case 2: single linear equation')
+                print('the pointer reads: %.3f' % ans_)
+            return ans_
 
 def Float2Int(x:list):
     return tuple([int(e) for e in x])
@@ -324,8 +344,8 @@ def IsFloat(v:str)->bool:
         chr = v[i:i+1]
         if not IsDigit(chr):
             return False
-    if v[len(v)-1:] == '0':
-        return False
+    # if v[len(v)-1:] == '0':
+    #     return False
     return True
 
 def IsDecimal(v:str):
@@ -343,12 +363,12 @@ def GetDecimal(v:str) -> float:
     if v[0] == '-': # negative figure
         v = v[1:]
         neg_ = -1
+    if len(v) > 1 and v[0]=='0' and v[1]!='.': # the dot is missing, we put it back
+        v = '.'.join(['0', v[1:]])
     parts = SegDecimal(v)
     if len(parts) == 1:
         return neg_*int(v) # atoi_s(v)
     else:
-        if v[0]=='0' and v[1]!='.': # the dot is missing, we put it back
-            v = '.'.join(['0', v[1:]])
         return neg_*float(v) # atof_s(v)
 
 def RectInter(bb1, bb2):
@@ -800,6 +820,8 @@ def GetDashboardReader(
     # checking the cluster distribution, if distances to the center have large variance,
     # then this cluster may contains bad points, we need remove them
     # calculate the average distance to the center to be radius of circle
+    centers_new = [centers[0] for _ in range(len(clusters))]
+    clusters_new = [[] for _ in range(len(clusters))]
     for k in range(len(clusters)):
         dis_var = 0
         for i in clusters[k]:
@@ -816,19 +838,23 @@ def GetDashboardReader(
             # if over 90% or higher of the points support this solution,
             # then the solution is optimal.
             num_support = 0
-            ransac_thres = 0.98
+            ransac_thres = 0.75
             min_degree = 10 # in line control
             num_total = len(clusters[k])
-            RANSAC_MAX_ITER = 100
-            SUPPORT_THRES = 0.2
+            RANSAC_MAX_ITER = 30
+            SUPPORT_THRES = 0.25
             itr = 0 # count the iteration number up to the limit
             while itr < RANSAC_MAX_ITER:
+                itr += 1
                 selects = []
+                assert num_total >= 3
                 # randomly select 3 points to calculate the center
-                while len(selects) == 3:
+                while len(selects) < 3:
                     _id = int(np.random.rand()*num_total)
                     if _id not in selects:
                         selects += [_id]
+                if debug:
+                    print('RANSAC select: ' + str(selects))
                 # check if 3 points are in a line
                 # vector from A to B
                 vecAB = np.array(pts[clusters[k][selects[0]]]) - np.array(pts[clusters[k][selects[1]]])
@@ -837,13 +863,17 @@ def GetDashboardReader(
                 normBC = np.sqrt(np.sum(np.square(vecBC)))
                 # ensure no duplicate points
                 if normAB < 1.0 or normBC < 1.0: # cannot be too close
+                    if debug:
+                        print('dumplicate points sampled!')
                     continue
                 # ensure 3 points are not in a same line
                 acos_ = (vecAB[0]*vecBC[0] + vecAB[1]*vecBC[1]) / (normAB*normBC)
-                if np.abs(acos_) < np.cos(min_degree/180.0*np.pi): # angle must be larger than 10 degree
+                if np.abs(acos_) > np.cos(min_degree/180.0*np.pi): # angle must be larger than 10 degree
+                    if debug:
+                        print('3 points are in a same line!')
                     continue
                 # calculate the outer-circle for a triangle
-                tri_pts = [pts[clusters[k][selects[_id]]] for _id in range(3)]
+                tri_pts = np.array([pts[clusters[k][selects[_id]]] for _id in range(3)])
                 cnt_, rad_ = TriangleOuterCircle(tri_pts, debug=True)
                 # count supports
                 num_support = 0
@@ -853,15 +883,45 @@ def GetDashboardReader(
                         num_support += 1
                 # check if min-support is met
                 if num_support*1.0/num_total >= ransac_thres:
+                    # and remove unsupported items
+                    for i in clusters[k]:
+                        _dis = np.sqrt(np.sum(np.square(np.array(pts[i]) - np.array(cnt_))))
+                        if np.abs(_dis - rad_) <= SUPPORT_THRES*rad_:
+                            clusters_new[k] += [i]
+                    # update radius and clusters
+                    centers_new[k] = cnt_
+                    rads[k] = rad_
+                    clusters[k] = clusters_new[k]
                     if debug:
                         print('min-support in RANSAC is satisfied!')
                     break
-            if num_support > ransac_thres * num_total:
-                # use this new center and radius to replace old ones
-                # and remove unsupported items
-                centers = []
-
-
+            # update centers,
+            if len(centers_new) == 2:
+                centers = [((np.array(centers_new[0]) + np.array(centers_new[1])) / 2.0).tolist()]
+            elif len(centers_new) == 1:
+                centers = centers_new
+            else:
+                assert False
+    # visualize the updated centers and clusters
+    if debug:
+        print('updated cluster result:')
+        print('center: (%d, %d)' % (int(centers[0][0]), int(centers[0][1])))
+        print('cluster:' + str(clusters))
+        print('values:')
+        print(np.array(values_1)[clusters[0]])
+        if len(clusters) > 1:
+            print(np.array(values_1)[clusters[1]])
+        # visualize the boxes for each board-tick axis
+        vis = im.copy()
+        colors = [(0,0,255), (255, 0, 0), (0, 255, 0)]
+        cv2.circle(vis, (int(centers[0][0]),int(centers[0][1])), 20, colors[-1], 2)
+        for k in range(len(clusters)):
+            cv2.circle(vis, (int(centers[0][0]),int(centers[0][1])), int(rads[k]), colors[k], 2)
+            for i in clusters[k]:
+                _pts = (bboxes_1[i][0],bboxes_1[i][1],bboxes_1[i][0]+bboxes_1[i][2],bboxes_1[i][1]+bboxes_1[i][3])
+                cv2.rectangle(vis, Float2Int(_pts[:2]), Float2Int(_pts[2:]), colors[k], 2, 8)
+        cv2.imshow('cluster updated', vis)
+        cv2.waitKey(0)
     # =============== modeling angles and values ================
     # get angles
     angles = [[] for _ in range(len(clusters))]
