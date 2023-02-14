@@ -66,14 +66,18 @@ if __name__ == '__main__':
                         ptr_color, 
                         2)
                     read_funcs = GetDashboardReader(im_crop, debug=True, ocr_model_dir=model_dir)
+                    _x, _y = int((x+pad_w/2)*pad_scale),int((y+pad_h/2)*pad_scale)
                     for func_id in range(len(read_funcs)):
                         if read_funcs[func_id].ready():
                             _read = read_funcs[func_id](
                                 ptr_bboxes[-1], 
                                 LocatePointer(im_crop[int(ptr_y):int(ptr_y+ptr_h), int(ptr_x):int(ptr_x + ptr_w)], True)
                             )
-                            cv2.putText(vis, 'pointer# %d at ring#%d reads: %.1f' % (ptr_id, func_id, _read), (px, py), cv2.FONT_HERSHEY_PLAIN, 2.0, ptr_color,2)
+                            cv2.putText(vis, 'pointer# %d at ring#%d reads: %.3f' % (ptr_id, func_id, _read), (px, py), cv2.FONT_HERSHEY_PLAIN, 1.2, ptr_color,2)
+                            # show the on the original image
+                            cv2.putText(im_pad, 'pointer# %d at ring#%d reads: %.3f' % (ptr_id, func_id, _read), (_x, _y), cv2.FONT_HERSHEY_PLAIN, 1.2, ptr_color,2)
                             py += 50
+                            _y += 50
                 cv2.imshow('crop#%d' % ibb, vis)
                 cv2.waitKey(0)
             elif LABEL_NAMES[labels[ibb]].lower() in ['display']:
@@ -114,3 +118,24 @@ if __name__ == '__main__':
                 print(res)
                 cv2.imshow('display', im_crop)
                 cv2.waitKey(0)
+                # find the best matched test region
+                if len(res) < 1:
+                    print('no text on count display found!')
+                conf_thr = 0.9
+                val = 0
+                id_max_conf = -1
+                max_conf = -1
+                for _id_res in range(len(res)):
+                    if res[_id_res][1][1] > max_conf:
+                        max_conf = res[_id_res][1][1]
+                        id_max_conf = _id_res
+                if max_conf > conf_thr:
+                    val = int(res[id_max_conf][1][0])
+                    print('the value on the display: %d' % val)
+                    px = int((x+pad_w/2)*pad_scale)
+                    py = int((y+pad_h/2)*pad_scale)
+                    cv2.putText(im_pad, 'display reads: %d' % val, (px, py), cv2.FONT_HERSHEY_PLAIN, 1.2, ptr_color, 2)
+                else:
+                    print('no qualified text on count display found!')
+            cv2.imshow('display', im_pad)
+            cv2.waitKey(0)
