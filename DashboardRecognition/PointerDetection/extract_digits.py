@@ -587,7 +587,7 @@ def GetDashboardReader(
     im: np.ndarray, 
     tta_splits=3, 
     ocr_model_dir='pretrained/', 
-    rec_thresh = 0.9,
+    rec_thresh = 0.97,
     debug=False) -> list: # return list of [StagedLinearFunction]
     ocr = PaddleOCR(
         lang="en",
